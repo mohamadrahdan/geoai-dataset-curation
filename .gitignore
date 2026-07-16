@@ -1,0 +1,88 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python environments
+.venv/
+venv/
+env/
+
+# Python tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+kaggle.json
+service-account*.json
+
+# Geospatial source data
+*.shp
+*.shx
+*.dbf
+*.prj
+*.cpg
+*.qmd
+*.gpkg
+*.geojson
+*.kml
+*.kmz
+
+# Raster data
+*.tif
+*.tiff
+*.vrt
+*.jp2
+*.img
+*.aux.xml
+*.ovr
+
+# Machine-learning data and artifacts
+*.npy
+*.npz
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.h5
+*.keras
+
+# Archives
+*.zip
+*.7z
+*.tar
+*.tar.gz
+
+# Local data and generated outputs
+data/
+outputs/
+artifacts/
+reports/generated/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
