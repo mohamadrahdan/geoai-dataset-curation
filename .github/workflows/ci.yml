@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  repository-foundation:
+    name: Repository foundation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Display Python version
+        run: python --version
+
+      - name: Verify repository foundation
+        shell: bash
+        run: |
+          test -f README.md
+          test -f LICENSE
+          test -f .gitignore
+          test -f .editorconfig
+          test -f docs/decisions/README.md
+
+      - name: Report successful validation
+        run: echo "Repository foundation validation passed."
