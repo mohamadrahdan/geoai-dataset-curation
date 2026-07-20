@@ -1,0 +1,47 @@
+version: "1.0"
+
+study_area: padena
+
+sources:
+  - id: padena_aoi
+    category: area_of_interest
+    path: null
+    format: null
+    geometry_type: polygon
+    crs: null
+    access: private
+    role: defines_study_area
+    status: pending_metadata
+
+  - id: padena_landslides
+    category: landslide
+    path: null
+    format: null
+    geometry_type: polygon
+    crs: null
+    access: private
+    role: positive_reference
+    label_value: 1
+    status: pending_metadata
+
+  - id: padena_non_landslides
+    category: non_landslide
+    path: null
+    format: null
+    geometry_type: polygon
+    crs: null
+    access: private
+    role: reviewed_negative_reference
+    label_value: 0
+    status: pending_metadata
+
+  - id: padena_pseudo_landslides
+    category: pseudo_landslide
+    path: null
+    format: null
+    geometry_type: polygon
+    crs: null
+    access: private
+    role: hard_negative_reference
+    label_value: 0
+    status: pending_metadata

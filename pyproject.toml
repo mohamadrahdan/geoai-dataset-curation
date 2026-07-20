@@ -12,7 +12,9 @@ license = { file = "LICENSE" }
 authors = [
   { name = "Mohammad Rahdan Mofrad" }
 ]
-dependencies = []
+dependencies = [
+  "PyYAML>=6.0"
+]
 
 [project.optional-dependencies]
 dev = [
