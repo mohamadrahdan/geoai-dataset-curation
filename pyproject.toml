@@ -13,7 +13,9 @@ authors = [
   { name = "Mohammad Rahdan Mofrad" }
 ]
 dependencies = [
-  "PyYAML>=6.0"
+  "PyYAML>=6.0",
+  "Shapely>=2.1",
+  "GeoPandas>=1.0",
 ]
 
 [project.optional-dependencies]
