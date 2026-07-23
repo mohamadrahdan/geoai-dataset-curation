@@ -6,6 +6,7 @@ from geoai_dataset_curation.validation.io import load_vector_file
 from geoai_dataset_curation.validation.report import (validation_summary_to_dict)
 from geoai_dataset_curation.validation.source import validate_source
 from geoai_dataset_curation.validation.pipeline import validate_vector_file
+from geoai_dataset_curation.validation.metadata import (validate_source_metadata)
 
 __all__ = [
     "ValidationIssue",
@@ -15,4 +16,5 @@ __all__ = [
     "validation_summary_to_dict",
     "load_vector_file",
     "validate_vector_file",
+    "validate_source_metadata",
 ]
