@@ -33,4 +33,4 @@ def test_load_vector_file_reads_geospatial_data(
     assert len(loaded) == 1
     assert loaded.crs is not None
     assert loaded.crs.to_epsg() == 4326
-    assert loaded.geometry.iloc[0].geom_type == "Polygon"
+    assert loaded.geometry.geom_type.iloc[0] == "Polygon"
