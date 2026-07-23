@@ -59,7 +59,7 @@ Metadata issues are also preserved in the validation report so that downstream w
 
 ## Public Validation API
 
-The validation package exposes(stellt bereit) the following public capabilities:
+The validation package exposes the following public capabilities:
 
 ```python
 from geoai_dataset_curation.validation import (
@@ -81,7 +81,7 @@ validate_vector_file(
 )
 ```
 
-This function loads(lädt) the vector source, runs(führt aus) geometry and metadata checks, and returns(gibt zurück) a structured `ValidationSummary`.
+This function loads the vector source, runs geometry and metadata checks, and returns a structured `ValidationSummary`.
 
 ## Consequences
 
@@ -120,7 +120,7 @@ At the time of this decision, the complete test suite passes with:
 
 ## Future Extensions
 
-Later loops may extend(erweitern) the validation workflow with:
+Later loops may extend the validation workflow with:
 
 - expected CRS enforcement
 - spatial extent checks
