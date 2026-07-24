@@ -25,3 +25,20 @@ class SceneCandidate:
     cloud_cover: float
     collection: str
     available_bands: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ScenePreparationResult:
+    "Summary of one scene-preparation run"
+
+    source_id: str
+    candidate_count: int
+    selected_count: int
+    rejected_count: int
+    selected_scenes: tuple[SceneCandidate, ...]
+
+    @property
+    def has_selected_scenes(self) -> bool:
+        "Return whether at least one scene was selected"
+
+        return self.selected_count > 0
