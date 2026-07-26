@@ -97,3 +97,25 @@ def test_validate_image_construction_request_rejects_empty_output_name() -> None
 
     errors = validate_image_construction_request(invalid_request)
     assert "output_name must not be empty" in errors
+
+
+def test_validate_image_construction_request_includes_grid_errors() -> None:
+    request = make_valid_request()
+    invalid_grid = RasterGridSpec(
+        crs=" ",
+        width=0,
+        height=512,
+        pixel_size_x=10.0,
+        pixel_size_y=10.0,
+    )
+    invalid_request = ImageConstructionRequest(
+        source_id=request.source_id,
+        scene_ids=request.scene_ids,
+        bands=request.bands,
+        grid=invalid_grid,
+        output_name=request.output_name,
+    )
+
+    errors = validate_image_construction_request(invalid_request)
+    assert "grid.crs must not be empty." in errors
+    assert "grid.width must be greater than zero." in errors
