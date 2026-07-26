@@ -10,6 +10,7 @@ from geoai_dataset_curation.image_construction.validation import (
     validate_raster_grid_spec,
 )
 from geoai_dataset_curation.image_construction.pipeline import (construct_image)
+from geoai_dataset_curation.image_construction.manifest import (image_construction_result_to_dict)
 
 __all__ = [
     "ImageConstructionRequest",
@@ -18,4 +19,5 @@ __all__ = [
     "validate_raster_grid_spec",
     "ImageConstructionResult",
     "construct_image",
+    "image_construction_result_to_dict",
 ]
