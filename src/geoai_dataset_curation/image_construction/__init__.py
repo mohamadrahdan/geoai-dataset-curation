@@ -2,6 +2,7 @@
 
 from geoai_dataset_curation.image_construction.contracts import (
     ImageConstructionRequest,
+    ImageConstructionResult,
     RasterGridSpec,
 )
 from geoai_dataset_curation.image_construction.validation import (
@@ -14,4 +15,5 @@ __all__ = [
     "RasterGridSpec",
     "validate_image_construction_request",
     "validate_raster_grid_spec",
+    "ImageConstructionResult",
 ]
