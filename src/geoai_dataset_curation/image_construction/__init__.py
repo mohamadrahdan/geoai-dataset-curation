@@ -1,23 +1,29 @@
 "Raster image-construction components"
 
 from geoai_dataset_curation.image_construction.contracts import (
+    AffineTransformSpec,
     ImageConstructionRequest,
     ImageConstructionResult,
     RasterGridSpec,
+)
+from geoai_dataset_curation.image_construction.manifest import (
+    image_construction_result_to_dict,
+)
+from geoai_dataset_curation.image_construction.pipeline import (
+    construct_image,
 )
 from geoai_dataset_curation.image_construction.validation import (
     validate_image_construction_request,
     validate_raster_grid_spec,
 )
-from geoai_dataset_curation.image_construction.pipeline import (construct_image)
-from geoai_dataset_curation.image_construction.manifest import (image_construction_result_to_dict)
 
 __all__ = [
+    "AffineTransformSpec",
     "ImageConstructionRequest",
-    "RasterGridSpec",
-    "validate_image_construction_request",
-    "validate_raster_grid_spec",
     "ImageConstructionResult",
+    "RasterGridSpec",
     "construct_image",
     "image_construction_result_to_dict",
+    "validate_image_construction_request",
+    "validate_raster_grid_spec",
 ]
