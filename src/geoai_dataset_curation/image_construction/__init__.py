@@ -17,6 +17,11 @@ from geoai_dataset_curation.image_construction.validation import (
     validate_raster_grid_spec,
     validate_affine_transform_spec,
 )
+from geoai_dataset_curation.image_construction.grid_identity import (
+    build_raster_grid_id,
+    raster_grid_identity_payload,
+    raster_grids_match,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -28,4 +33,7 @@ __all__ = [
     "validate_image_construction_request",
     "validate_raster_grid_spec",
     "validate_affine_transform_spec",
+    "build_raster_grid_id",
+    "raster_grid_identity_payload",
+    "raster_grids_match",
 ]
