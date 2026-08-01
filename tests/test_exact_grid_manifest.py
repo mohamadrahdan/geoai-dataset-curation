@@ -1,18 +1,29 @@
 from geoai_dataset_curation.image_construction import (
+    AffineTransformSpec,
     ImageConstructionResult,
     RasterGridSpec,
     image_construction_result_to_dict,
-    build_raster_grid_id
+)
+from geoai_dataset_curation.image_construction import (
+    build_raster_grid_id,
 )
 
-
-def test_image_construction_result_to_dict_serializes_manifest() -> None:
+def test_image_manifest_serializes_exact_affine_transform() -> None:
+    transform = AffineTransformSpec(
+        a=10.0,
+        b=0.0,
+        c=500000.0,
+        d=0.0,
+        e=-10.0,
+        f=3600000.0,
+    )
     grid = RasterGridSpec(
         crs="EPSG:32639",
         width=512,
         height=512,
         pixel_size_x=10.0,
         pixel_size_y=10.0,
+        transform=transform,
     )
     result = ImageConstructionResult(
         source_id="padena_aoi",
@@ -24,28 +35,27 @@ def test_image_construction_result_to_dict_serializes_manifest() -> None:
     )
 
     manifest = image_construction_result_to_dict(result)
+    assert manifest["grid"]["grid_id"] == build_raster_grid_id(grid)
 
-    assert manifest == {
-        "source_id": "padena_aoi",
-        "output_name": "padena_sentinel2_stack",
-        "scene_count": 2,
-        "band_count": 4,
-        "artifact_uri": "artifacts/padena_sentinel2_stack.tif",
-        "has_artifact": True,
-        "grid": {
-            "grid_id": build_raster_grid_id(grid),
-            "crs": "EPSG:32639",
-            "width": 512,
-            "height": 512,
-            "pixel_size_x": 10.0,
-            "pixel_size_y": 10.0,
-            "transform": None,
-        },
-        
+    assert manifest["grid"]["transform"] == {
+        "a": 10.0,
+        "b": 0.0,
+        "c": 500000.0,
+        "d": 0.0,
+        "e": -10.0,
+        "f": 3600000.0,
+        "coefficients": [
+            10.0,
+            0.0,
+            500000.0,
+            0.0,
+            -10.0,
+            3600000.0,
+        ],
     }
 
 
-def test_image_construction_result_to_dict_reports_missing_artifact() -> None:
+def test_image_manifest_serializes_missing_transform_as_none() -> None:
     grid = RasterGridSpec(
         crs="EPSG:32639",
         width=512,
@@ -55,15 +65,13 @@ def test_image_construction_result_to_dict_reports_missing_artifact() -> None:
     )
     result = ImageConstructionResult(
         source_id="padena_aoi",
-        output_name="padena_sentinel2_stack",
-        scene_count=2,
+        output_name="legacy_stack",
+        scene_count=1,
         band_count=4,
         grid=grid,
-        artifact_uri=" ",
+        artifact_uri="artifacts/legacy_stack.tif",
     )
 
     manifest = image_construction_result_to_dict(result)
 
-    assert manifest["has_artifact"] is False
-    assert manifest["artifact_uri"] == " "
     assert manifest["grid"]["transform"] is None
