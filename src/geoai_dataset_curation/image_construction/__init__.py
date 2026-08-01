@@ -23,6 +23,10 @@ from geoai_dataset_curation.image_construction.grid_identity import (
     raster_grid_identity_payload,
     raster_grids_match,
 )
+from geoai_dataset_curation.image_construction.grid_geometry import (
+    RasterBounds,
+    derive_raster_bounds,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -38,4 +42,6 @@ __all__ = [
     "raster_grid_identity_payload",
     "raster_grids_match",
     "validate_exact_raster_grid_spec",
+    "RasterBounds",
+    "derive_raster_bounds",
 ]
