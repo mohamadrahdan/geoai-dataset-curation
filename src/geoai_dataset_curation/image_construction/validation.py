@@ -1,9 +1,66 @@
 "Validation rules for image-construction requests"
 
+from math import isclose, isfinite
+
 from geoai_dataset_curation.image_construction.contracts import (
+    AffineTransformSpec,
     ImageConstructionRequest,
     RasterGridSpec,
 )
+
+
+def validate_affine_transform_spec(
+    transform: AffineTransformSpec,
+    *,
+    pixel_size_x: float,
+    pixel_size_y: float,
+) -> tuple[str, ...]:
+    "Return validation errors for one north-up affine transform"
+
+    errors: list[str] = []
+
+    coefficients = transform.as_tuple
+
+    if not all(isfinite(value) for value in coefficients):
+        errors.append("grid.transform coefficients must be finite.")
+
+    if transform.a == 0:
+        errors.append("grid.transform.a must not be zero.")
+
+    if transform.e == 0:
+        errors.append("grid.transform.e must not be zero.")
+
+    if transform.b != 0:
+        errors.append(
+            "grid.transform.b must be zero for a north-up raster grid."
+        )
+
+    if transform.d != 0:
+        errors.append(
+            "grid.transform.d must be zero for a north-up raster grid."
+        )
+
+    if not isclose(
+        abs(transform.a),
+        pixel_size_x,
+        rel_tol=0.0,
+        abs_tol=1e-9,
+    ):
+        errors.append(
+            "grid.transform.a must match grid.pixel_size_x."
+        )
+
+    if not isclose(
+        abs(transform.e),
+        pixel_size_y,
+        rel_tol=0.0,
+        abs_tol=1e-9,
+    ):
+        errors.append(
+            "grid.transform.e must match grid.pixel_size_y."
+        )
+
+    return tuple(errors)
 
 
 def validate_raster_grid_spec(
@@ -12,6 +69,7 @@ def validate_raster_grid_spec(
     "Return all detected validation errors for one raster-grid specification"
 
     errors: list[str] = []
+
     if not grid.crs.strip():
         errors.append("grid.crs must not be empty.")
 
@@ -26,6 +84,15 @@ def validate_raster_grid_spec(
 
     if grid.pixel_size_y <= 0:
         errors.append("grid.pixel_size_y must be greater than zero.")
+
+    if grid.transform is not None:
+        errors.extend(
+            validate_affine_transform_spec(
+                grid.transform,
+                pixel_size_x=grid.pixel_size_x,
+                pixel_size_y=grid.pixel_size_y,
+            )
+        )
 
     return tuple(errors)
 

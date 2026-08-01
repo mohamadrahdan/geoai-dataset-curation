@@ -15,6 +15,7 @@ from geoai_dataset_curation.image_construction.pipeline import (
 from geoai_dataset_curation.image_construction.validation import (
     validate_image_construction_request,
     validate_raster_grid_spec,
+    validate_affine_transform_spec,
 )
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "image_construction_result_to_dict",
     "validate_image_construction_request",
     "validate_raster_grid_spec",
+    "validate_affine_transform_spec",
 ]
