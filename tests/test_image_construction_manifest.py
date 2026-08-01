@@ -2,6 +2,7 @@ from geoai_dataset_curation.image_construction import (
     ImageConstructionResult,
     RasterGridSpec,
     image_construction_result_to_dict,
+    build_raster_grid_id
 )
 
 
@@ -32,6 +33,7 @@ def test_image_construction_result_to_dict_serializes_manifest() -> None:
         "artifact_uri": "artifacts/padena_sentinel2_stack.tif",
         "has_artifact": True,
         "grid": {
+            "grid_id": build_raster_grid_id(grid),
             "crs": "EPSG:32639",
             "width": 512,
             "height": 512,
@@ -39,6 +41,7 @@ def test_image_construction_result_to_dict_serializes_manifest() -> None:
             "pixel_size_y": 10.0,
             "transform": None,
         },
+        
     }
 
 

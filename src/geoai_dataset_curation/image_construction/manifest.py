@@ -1,9 +1,8 @@
 "Serialization helpers for image-construction results"
 
 from typing import Any
-from geoai_dataset_curation.image_construction.contracts import (
-    ImageConstructionResult,
-)
+from geoai_dataset_curation.image_construction.contracts import (ImageConstructionResult)
+from geoai_dataset_curation.image_construction.grid_identity import (build_raster_grid_id)
 
 
 def image_construction_result_to_dict(
@@ -21,6 +20,7 @@ def image_construction_result_to_dict(
         "artifact_uri": result.artifact_uri,
         "has_artifact": result.has_artifact,
         "grid": {
+            "grid_id": build_raster_grid_id(result.grid),
             "crs": result.grid.crs,
             "width": result.grid.width,
             "height": result.grid.height,

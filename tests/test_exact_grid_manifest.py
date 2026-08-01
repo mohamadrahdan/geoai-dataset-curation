@@ -4,7 +4,9 @@ from geoai_dataset_curation.image_construction import (
     RasterGridSpec,
     image_construction_result_to_dict,
 )
-
+from geoai_dataset_curation.image_construction import (
+    build_raster_grid_id,
+)
 
 def test_image_manifest_serializes_exact_affine_transform() -> None:
     transform = AffineTransformSpec(
@@ -33,6 +35,7 @@ def test_image_manifest_serializes_exact_affine_transform() -> None:
     )
 
     manifest = image_construction_result_to_dict(result)
+    assert manifest["grid"]["grid_id"] == build_raster_grid_id(grid)
 
     assert manifest["grid"]["transform"] == {
         "a": 10.0,
