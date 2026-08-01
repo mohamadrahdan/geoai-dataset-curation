@@ -11,6 +11,8 @@ def image_construction_result_to_dict(
 ) -> dict[str, Any]:
     "Convert an image-construction result into a serializable manifest"
 
+    transform = result.grid.transform
+
     return {
         "source_id": result.source_id,
         "output_name": result.output_name,
@@ -24,5 +26,18 @@ def image_construction_result_to_dict(
             "height": result.grid.height,
             "pixel_size_x": result.grid.pixel_size_x,
             "pixel_size_y": result.grid.pixel_size_y,
+            "transform": (
+                {
+                    "a": transform.a,
+                    "b": transform.b,
+                    "c": transform.c,
+                    "d": transform.d,
+                    "e": transform.e,
+                    "f": transform.f,
+                    "coefficients": list(transform.as_tuple),
+                }
+                if transform is not None
+                else None
+            ),
         },
     }
