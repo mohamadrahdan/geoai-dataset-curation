@@ -16,6 +16,7 @@ from geoai_dataset_curation.image_construction.validation import (
     validate_image_construction_request,
     validate_raster_grid_spec,
     validate_affine_transform_spec,
+    validate_exact_raster_grid_spec,
 )
 from geoai_dataset_curation.image_construction.grid_identity import (
     build_raster_grid_id,
@@ -36,4 +37,5 @@ __all__ = [
     "build_raster_grid_id",
     "raster_grid_identity_payload",
     "raster_grids_match",
+    "validate_exact_raster_grid_spec",
 ]

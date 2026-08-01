@@ -1,7 +1,6 @@
 "Validation rules for image-construction requests"
 
 from math import isclose, isfinite
-
 from geoai_dataset_curation.image_construction.contracts import (
     AffineTransformSpec,
     ImageConstructionRequest,
@@ -92,6 +91,32 @@ def validate_raster_grid_spec(
                 pixel_size_x=grid.pixel_size_x,
                 pixel_size_y=grid.pixel_size_y,
             )
+        )
+
+    return tuple(errors)
+
+
+def validate_exact_raster_grid_spec(
+    grid: RasterGridSpec,
+) -> tuple[str, ...]:
+    "Return validation errors for a grid used by exact raster export"
+
+    errors = list(validate_raster_grid_spec(grid))
+
+    if grid.transform is None:
+        errors.append(
+            "grid.transform is required for exact raster export."
+        )
+        return tuple(errors)
+
+    if grid.transform.a <= 0:
+        errors.append(
+            "grid.transform.a must be positive for a north-up raster grid."
+        )
+
+    if grid.transform.e >= 0:
+        errors.append(
+            "grid.transform.e must be negative for a north-up raster grid."
         )
 
     return tuple(errors)
