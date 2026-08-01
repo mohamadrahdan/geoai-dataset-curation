@@ -27,6 +27,9 @@ from geoai_dataset_curation.image_construction.grid_geometry import (
     RasterBounds,
     derive_raster_bounds,
 )
+from geoai_dataset_curation.image_construction.earth_engine_grid import (
+    raster_grid_to_earth_engine_export_params,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -44,4 +47,5 @@ __all__ = [
     "validate_exact_raster_grid_spec",
     "RasterBounds",
     "derive_raster_bounds",
+    "raster_grid_to_earth_engine_export_params",
 ]
