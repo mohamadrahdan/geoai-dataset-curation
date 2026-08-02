@@ -57,6 +57,7 @@ def test_raster_grid_to_earth_engine_export_params_rejects_missing_transform() -
         pixel_size_y=10.0,
     )
 
+
     with pytest.raises(
         ValueError,
         match="grid.transform is required for exact raster export",

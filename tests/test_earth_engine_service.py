@@ -185,4 +185,5 @@ def test_service_rejects_empty_task_id_before_delegation() -> None:
         match="task_id must not be empty",
     ):
         service.get_export_status(task)
+
     assert provider.status_requests == []
