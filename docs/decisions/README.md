@@ -18,3 +18,4 @@ Each decision record documents:
 - [DR-0003: Use Spatially Separated Dataset Splits](DR-0003-use-spatially-separated-dataset-splits.md)
 - [DR-0004: Define Image Construction as a Controlled Contract Boundary](DR-0004-define-image-construction-as-a-controlled-contract-boundary.md)
 - [DR-0005: Establish an Exact Shared Raster Grid](DR-0005-establish-an-exact-shared-raster-grid.md)
+- [DR-0006: Introduce an Earth Engine Provider Boundary](DR-0006-introduce-an-earth-engine-provider-boundary.md)
