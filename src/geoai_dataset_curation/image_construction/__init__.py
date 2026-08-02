@@ -49,6 +49,9 @@ from geoai_dataset_curation.image_construction.earth_engine_provider_validation 
     validate_earth_engine_export_request,
     validate_earth_engine_scene_query,
 )
+from geoai_dataset_curation.image_construction.earth_engine_service import (
+    EarthEngineService,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -80,4 +83,5 @@ __all__ = [
     "validate_earth_engine_composite_request",
     "validate_earth_engine_export_request",
     "validate_earth_engine_scene_query",
+    "EarthEngineService",
 ]
