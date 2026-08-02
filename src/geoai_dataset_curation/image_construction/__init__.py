@@ -52,6 +52,13 @@ from geoai_dataset_curation.image_construction.earth_engine_provider_validation 
 from geoai_dataset_curation.image_construction.earth_engine_service import (
     EarthEngineService,
 )
+from geoai_dataset_curation.image_construction.earth_engine_errors import (
+    EarthEngineAuthenticationError,
+    EarthEngineConnectionError,
+    EarthEngineExportError,
+    EarthEngineProviderError,
+    EarthEngineRequestError,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -84,4 +91,9 @@ __all__ = [
     "validate_earth_engine_export_request",
     "validate_earth_engine_scene_query",
     "EarthEngineService",
+    "EarthEngineAuthenticationError",
+    "EarthEngineConnectionError",
+    "EarthEngineExportError",
+    "EarthEngineProviderError",
+    "EarthEngineRequestError",
 ]
