@@ -59,6 +59,10 @@ from geoai_dataset_curation.image_construction.earth_engine_errors import (
     EarthEngineProviderError,
     EarthEngineRequestError,
 )
+from geoai_dataset_curation.image_construction.earth_engine_config import (
+    EarthEngineConfig,
+    EarthEngineCredentialSource,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -96,4 +100,6 @@ __all__ = [
     "EarthEngineExportError",
     "EarthEngineProviderError",
     "EarthEngineRequestError",
+    "EarthEngineConfig",
+    "EarthEngineCredentialSource",
 ]
