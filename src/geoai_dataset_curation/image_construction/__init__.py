@@ -41,6 +41,9 @@ from geoai_dataset_curation.image_construction.earth_engine_provider import (
     EarthEngineSceneReference,
     EarthEngineTaskState,
 )
+from geoai_dataset_curation.image_construction.fake_earth_engine_provider import (
+    FakeEarthEngineProvider,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -68,4 +71,5 @@ __all__ = [
     "EarthEngineSceneQuery",
     "EarthEngineSceneReference",
     "EarthEngineTaskState",
+    "FakeEarthEngineProvider",
 ]
