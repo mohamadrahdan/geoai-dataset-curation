@@ -30,6 +30,17 @@ from geoai_dataset_curation.image_construction.grid_geometry import (
 from geoai_dataset_curation.image_construction.earth_engine_grid import (
     raster_grid_to_earth_engine_export_params,
 )
+from geoai_dataset_curation.image_construction.earth_engine_provider import (
+    EarthEngineCompositeRequest,
+    EarthEngineExportRequest,
+    EarthEngineExportTaskReference,
+    EarthEngineExportTaskStatus,
+    EarthEngineImageReference,
+    EarthEngineProvider,
+    EarthEngineSceneQuery,
+    EarthEngineSceneReference,
+    EarthEngineTaskState,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -48,4 +59,13 @@ __all__ = [
     "RasterBounds",
     "derive_raster_bounds",
     "raster_grid_to_earth_engine_export_params",
+    "EarthEngineCompositeRequest",
+    "EarthEngineExportRequest",
+    "EarthEngineExportTaskReference",
+    "EarthEngineExportTaskStatus",
+    "EarthEngineImageReference",
+    "EarthEngineProvider",
+    "EarthEngineSceneQuery",
+    "EarthEngineSceneReference",
+    "EarthEngineTaskState",
 ]
