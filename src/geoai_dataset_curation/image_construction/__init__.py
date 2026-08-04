@@ -78,6 +78,13 @@ from geoai_dataset_curation.image_construction.earth_engine_credentials import (
     EarthEngineCredentialStrategy,
     build_earth_engine_credential_strategy,
 )
+from geoai_dataset_curation.image_construction.earth_engine_initialization import (
+    EarthEngineInitializationResult,
+    initialize_earth_engine,
+)
+from geoai_dataset_curation.image_construction.earth_engine_runtime import (
+    EarthEngineRuntime,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -126,4 +133,7 @@ __all__ = [
     "load_earth_engine_config",
     "EarthEngineCredentialStrategy",
     "build_earth_engine_credential_strategy",
+    "EarthEngineInitializationResult",
+    "EarthEngineRuntime",
+    "initialize_earth_engine",
 ]
