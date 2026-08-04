@@ -74,6 +74,10 @@ from geoai_dataset_curation.image_construction.earth_engine_env import (
     SERVICE_ACCOUNT_KEY_PATH_ENV,
     load_earth_engine_config,
 )
+from geoai_dataset_curation.image_construction.earth_engine_credentials import (
+    EarthEngineCredentialStrategy,
+    build_earth_engine_credential_strategy,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -120,4 +124,6 @@ __all__ = [
     "SERVICE_ACCOUNT_EMAIL_ENV",
     "SERVICE_ACCOUNT_KEY_PATH_ENV",
     "load_earth_engine_config",
+    "EarthEngineCredentialStrategy",
+    "build_earth_engine_credential_strategy",
 ]
