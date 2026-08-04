@@ -85,6 +85,9 @@ from geoai_dataset_curation.image_construction.earth_engine_initialization impor
 from geoai_dataset_curation.image_construction.earth_engine_runtime import (
     EarthEngineRuntime,
 )
+from geoai_dataset_curation.image_construction.earth_engine_sdk_runtime import (
+    EarthEngineSdkRuntime,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -136,4 +139,5 @@ __all__ = [
     "EarthEngineInitializationResult",
     "EarthEngineRuntime",
     "initialize_earth_engine",
+    "EarthEngineSdkRuntime",
 ]
