@@ -66,6 +66,14 @@ from geoai_dataset_curation.image_construction.earth_engine_config import (
 from geoai_dataset_curation.image_construction.earth_engine_config_validation import (
     validate_earth_engine_config,
 )
+from geoai_dataset_curation.image_construction.earth_engine_env import (
+    API_ENDPOINT_ENV,
+    CREDENTIAL_SOURCE_ENV,
+    PROJECT_ID_ENV,
+    SERVICE_ACCOUNT_EMAIL_ENV,
+    SERVICE_ACCOUNT_KEY_PATH_ENV,
+    load_earth_engine_config,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -106,4 +114,10 @@ __all__ = [
     "EarthEngineConfig",
     "EarthEngineCredentialSource",
     "validate_earth_engine_config",
+    "API_ENDPOINT_ENV",
+    "CREDENTIAL_SOURCE_ENV",
+    "PROJECT_ID_ENV",
+    "SERVICE_ACCOUNT_EMAIL_ENV",
+    "SERVICE_ACCOUNT_KEY_PATH_ENV",
+    "load_earth_engine_config",
 ]
