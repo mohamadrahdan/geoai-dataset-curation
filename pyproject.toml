@@ -16,6 +16,7 @@ dependencies = [
   "PyYAML>=6.0",
   "Shapely>=2.1",
   "GeoPandas>=1.0",
+  "earthengine-api>=1.7.36",
 ]
 
 [project.optional-dependencies]

@@ -59,6 +59,35 @@ from geoai_dataset_curation.image_construction.earth_engine_errors import (
     EarthEngineProviderError,
     EarthEngineRequestError,
 )
+from geoai_dataset_curation.image_construction.earth_engine_config import (
+    EarthEngineConfig,
+    EarthEngineCredentialSource,
+)
+from geoai_dataset_curation.image_construction.earth_engine_config_validation import (
+    validate_earth_engine_config,
+)
+from geoai_dataset_curation.image_construction.earth_engine_env import (
+    API_ENDPOINT_ENV,
+    CREDENTIAL_SOURCE_ENV,
+    PROJECT_ID_ENV,
+    SERVICE_ACCOUNT_EMAIL_ENV,
+    SERVICE_ACCOUNT_KEY_PATH_ENV,
+    load_earth_engine_config,
+)
+from geoai_dataset_curation.image_construction.earth_engine_credentials import (
+    EarthEngineCredentialStrategy,
+    build_earth_engine_credential_strategy,
+)
+from geoai_dataset_curation.image_construction.earth_engine_initialization import (
+    EarthEngineInitializationResult,
+    initialize_earth_engine,
+)
+from geoai_dataset_curation.image_construction.earth_engine_runtime import (
+    EarthEngineRuntime,
+)
+from geoai_dataset_curation.image_construction.earth_engine_sdk_runtime import (
+    EarthEngineSdkRuntime,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -96,4 +125,19 @@ __all__ = [
     "EarthEngineExportError",
     "EarthEngineProviderError",
     "EarthEngineRequestError",
+    "EarthEngineConfig",
+    "EarthEngineCredentialSource",
+    "validate_earth_engine_config",
+    "API_ENDPOINT_ENV",
+    "CREDENTIAL_SOURCE_ENV",
+    "PROJECT_ID_ENV",
+    "SERVICE_ACCOUNT_EMAIL_ENV",
+    "SERVICE_ACCOUNT_KEY_PATH_ENV",
+    "load_earth_engine_config",
+    "EarthEngineCredentialStrategy",
+    "build_earth_engine_credential_strategy",
+    "EarthEngineInitializationResult",
+    "EarthEngineRuntime",
+    "initialize_earth_engine",
+    "EarthEngineSdkRuntime",
 ]
