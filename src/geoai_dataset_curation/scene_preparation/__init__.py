@@ -21,6 +21,9 @@ from geoai_dataset_curation.scene_preparation.study_area_loading import (
     StudyAreaLoadingError,
     load_study_area,
 )
+from geoai_dataset_curation.scene_preparation.study_area_validation import (
+    validate_study_area,
+)
 
 __all__ = [
     "SceneCandidate",
@@ -33,4 +36,5 @@ __all__ = [
     "validate_scene_selection_request",
     "StudyAreaLoadingError",
     "load_study_area",
+    "validate_study_area",
 ]
