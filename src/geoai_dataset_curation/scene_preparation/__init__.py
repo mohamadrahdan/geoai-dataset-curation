@@ -17,7 +17,10 @@ from geoai_dataset_curation.scene_preparation.selection import (
 from geoai_dataset_curation.scene_preparation.validation import (
     validate_scene_selection_request,
 )
-
+from geoai_dataset_curation.scene_preparation.study_area_loading import (
+    StudyAreaLoadingError,
+    load_study_area,
+)
 
 __all__ = [
     "SceneCandidate",
@@ -28,4 +31,6 @@ __all__ = [
     "scene_preparation_result_to_dict",
     "select_scene_candidates",
     "validate_scene_selection_request",
+    "StudyAreaLoadingError",
+    "load_study_area",
 ]
