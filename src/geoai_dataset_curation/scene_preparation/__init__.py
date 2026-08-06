@@ -24,6 +24,10 @@ from geoai_dataset_curation.scene_preparation.study_area_loading import (
 from geoai_dataset_curation.scene_preparation.study_area_validation import (
     validate_study_area,
 )
+from geoai_dataset_curation.scene_preparation.sentinel2_query import (
+    EARTH_ENGINE_QUERY_CRS,
+    build_sentinel2_scene_query,
+)
 
 __all__ = [
     "SceneCandidate",
@@ -37,4 +41,6 @@ __all__ = [
     "StudyAreaLoadingError",
     "load_study_area",
     "validate_study_area",
+    "EARTH_ENGINE_QUERY_CRS",
+    "build_sentinel2_scene_query",
 ]
