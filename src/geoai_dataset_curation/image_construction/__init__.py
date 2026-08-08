@@ -91,6 +91,11 @@ from geoai_dataset_curation.image_construction.earth_engine_sdk_runtime import (
 from geoai_dataset_curation.image_construction.earth_engine_sdk_provider import (
     EarthEngineSdkProvider,
 )
+from geoai_dataset_curation.image_construction.cloud_mask import (
+    DEFAULT_SENTINEL2_EXCLUDED_SCL_CLASSES,
+    SENTINEL2_SCL_BAND,
+    Sentinel2CloudMaskSpec,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -144,4 +149,7 @@ __all__ = [
     "initialize_earth_engine",
     "EarthEngineSdkRuntime",
     "EarthEngineSdkProvider",
+    "DEFAULT_SENTINEL2_EXCLUDED_SCL_CLASSES",
+    "SENTINEL2_SCL_BAND",
+    "Sentinel2CloudMaskSpec",
 ]
