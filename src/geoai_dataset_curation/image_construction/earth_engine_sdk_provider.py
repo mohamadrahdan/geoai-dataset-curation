@@ -9,6 +9,11 @@ from geoai_dataset_curation.image_construction.earth_engine_errors import (
     EarthEngineRequestError,
 )
 from geoai_dataset_curation.image_construction.earth_engine_provider import (
+    EarthEngineCompositeRequest,
+    EarthEngineExportRequest,
+    EarthEngineExportTaskReference,
+    EarthEngineExportTaskStatus,
+    EarthEngineImageReference,
     EarthEngineSceneQuery,
     EarthEngineSceneReference,
 )
@@ -110,5 +115,32 @@ class EarthEngineSdkProvider:
                     cloud_cover=float(cloud_cover),
                 )
             )
-
         return tuple(scene_references)
+
+
+    def build_composite(
+        self,
+        request: EarthEngineCompositeRequest,
+    ) -> EarthEngineImageReference:
+        "Build a composite through the Earth Engine SDK"
+        raise NotImplementedError(
+            "Earth Engine composite construction is not implemented yet."
+        )
+
+    def start_export(
+        self,
+        request: EarthEngineExportRequest,
+    ) -> EarthEngineExportTaskReference:
+        "Start an Earth Engine export task"
+        raise NotImplementedError(
+            "Earth Engine export execution is not implemented yet."
+        )
+
+    def get_export_status(
+        self,
+        task: EarthEngineExportTaskReference,
+    ) -> EarthEngineExportTaskStatus:
+        "Return the status of an Earth Engine export task"
+        raise NotImplementedError(
+            "Earth Engine export status handling is not implemented yet."
+        )

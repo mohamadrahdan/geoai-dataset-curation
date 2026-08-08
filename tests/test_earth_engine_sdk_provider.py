@@ -7,6 +7,7 @@ from geoai_dataset_curation.image_construction import (
     EarthEngineRequestError,
     EarthEngineSceneQuery,
     EarthEngineSdkProvider,
+    EarthEngineProvider,
 )
 
 
@@ -294,3 +295,11 @@ def test_sdk_provider_normalizes_sdk_failure() -> None:
         match="Earth Engine scene search failed",
     ):
         provider.search_sentinel2_scenes(_query())
+
+
+def test_sdk_provider_satisfies_provider_protocol() -> None:
+    provider = EarthEngineSdkProvider(
+        sdk=FakeEarthEngineSdk()
+    )
+
+    assert isinstance(provider, EarthEngineProvider)
