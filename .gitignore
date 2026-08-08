@@ -86,3 +86,6 @@ Thumbs.db
 *.log
 tmp/
 temp/
+
+# Local repository bundle
+project_bundle.txt

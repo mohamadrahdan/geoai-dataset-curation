@@ -1,22 +1,46 @@
 "Sentinel-2 scene-preparation components"
-
-from geoai_dataset_curation.scene_preparation.pipeline import (prepare_scenes)
-from geoai_dataset_curation.scene_preparation.selection import (select_scene_candidates)
-from geoai_dataset_curation.scene_preparation.validation import (validate_scene_selection_request)
-from geoai_dataset_curation.scene_preparation.manifest import (scene_preparation_result_to_dict)
 from geoai_dataset_curation.scene_preparation.contracts import (
     SceneCandidate,
     ScenePreparationResult,
     SceneSelectionRequest,
+    StudyAreaSpec,
 )
-
+from geoai_dataset_curation.scene_preparation.manifest import (
+    scene_preparation_result_to_dict,
+)
+from geoai_dataset_curation.scene_preparation.pipeline import (
+    prepare_scenes,
+)
+from geoai_dataset_curation.scene_preparation.selection import (
+    select_scene_candidates,
+)
+from geoai_dataset_curation.scene_preparation.validation import (
+    validate_scene_selection_request,
+)
+from geoai_dataset_curation.scene_preparation.study_area_loading import (
+    StudyAreaLoadingError,
+    load_study_area,
+)
+from geoai_dataset_curation.scene_preparation.study_area_validation import (
+    validate_study_area,
+)
+from geoai_dataset_curation.scene_preparation.sentinel2_query import (
+    EARTH_ENGINE_QUERY_CRS,
+    build_sentinel2_scene_query,
+)
 
 __all__ = [
     "SceneCandidate",
     "ScenePreparationResult",
     "SceneSelectionRequest",
+    "StudyAreaSpec",
     "prepare_scenes",
+    "scene_preparation_result_to_dict",
     "select_scene_candidates",
     "validate_scene_selection_request",
-    "scene_preparation_result_to_dict",
+    "StudyAreaLoadingError",
+    "load_study_area",
+    "validate_study_area",
+    "EARTH_ENGINE_QUERY_CRS",
+    "build_sentinel2_scene_query",
 ]
