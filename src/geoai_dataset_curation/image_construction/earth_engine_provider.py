@@ -1,10 +1,12 @@
 "Provider boundary for Earth Engine image construction"
-
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol, runtime_checkable
 from geoai_dataset_curation.image_construction.contracts import (
     RasterGridSpec,
+)
+from geoai_dataset_curation.image_construction.cloud_mask import (
+    Sentinel2CloudMaskSpec,
 )
 
 
@@ -28,9 +30,10 @@ class EarthEngineSceneReference:
 
 @dataclass(frozen=True)
 class EarthEngineCompositeRequest:
-    "Request for constructing one image composite"
+    "Request for constructing one Sentinel-2 image composite"
     scene_ids: tuple[str, ...]
     bands: tuple[str, ...]
+    cloud_mask: Sentinel2CloudMaskSpec
 
 
 @dataclass(frozen=True)

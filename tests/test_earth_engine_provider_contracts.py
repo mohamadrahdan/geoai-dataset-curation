@@ -9,6 +9,7 @@ from geoai_dataset_curation.image_construction import (
     EarthEngineSceneReference,
     EarthEngineTaskState,
     RasterGridSpec,
+    Sentinel2CloudMaskSpec,
 )
 
 
@@ -40,13 +41,16 @@ def test_earth_engine_scene_reference_stores_selected_scene_metadata() -> None:
     assert scene.cloud_cover == 8.5
 
 
-def test_earth_engine_composite_request_uses_scene_and_band_contracts() -> None:
+def test_earth_engine_composite_request_stores_processing_contract() -> None:
+    cloud_mask = Sentinel2CloudMaskSpec()
     request = EarthEngineCompositeRequest(
         scene_ids=("scene-1", "scene-2"),
         bands=("B2", "B3", "B4", "B8"),
+        cloud_mask=cloud_mask,
     )
     assert request.scene_ids == ("scene-1", "scene-2")
     assert request.bands == ("B2", "B3", "B4", "B8")
+    assert request.cloud_mask == cloud_mask
 
 
 def test_earth_engine_export_request_uses_exact_raster_grid() -> None:

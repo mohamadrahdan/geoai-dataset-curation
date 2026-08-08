@@ -9,6 +9,7 @@ from geoai_dataset_curation.image_construction import (
     validate_earth_engine_composite_request,
     validate_earth_engine_export_request,
     validate_earth_engine_scene_query,
+    Sentinel2CloudMaskSpec,
 )
 
 
@@ -142,6 +143,7 @@ def test_validate_earth_engine_composite_request_accepts_valid_request() -> None
     request = EarthEngineCompositeRequest(
         scene_ids=("scene-1", "scene-2"),
         bands=("B2", "B3", "B4", "B8"),
+        cloud_mask=Sentinel2CloudMaskSpec(),
     )
 
     errors = validate_earth_engine_composite_request(request)
@@ -152,9 +154,11 @@ def test_validate_earth_engine_composite_request_rejects_invalid_values() -> Non
     request = EarthEngineCompositeRequest(
         scene_ids=("scene-1", "scene-1", " "),
         bands=("B2", "B2", ""),
+        cloud_mask=Sentinel2CloudMaskSpec(),
     )
 
     errors = validate_earth_engine_composite_request(request)
+
     assert "scene_ids must not contain duplicates." in errors
     assert "scene_ids must not contain empty values." in errors
     assert "bands must not contain duplicates." in errors
