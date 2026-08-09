@@ -9,6 +9,9 @@ from geoai_dataset_curation.image_construction.earth_engine_provider import (
 from geoai_dataset_curation.image_construction.validation import (
     validate_exact_raster_grid_spec,
 )
+from geoai_dataset_curation.image_construction.cloud_mask_validation import (
+    validate_sentinel2_cloud_mask_spec,
+)
 
 
 def _is_iso_date(value: str) -> bool:
@@ -107,6 +110,12 @@ def validate_earth_engine_composite_request(
         errors.append(
             "bands must not contain empty values."
         )
+
+    errors.extend(
+        validate_sentinel2_cloud_mask_spec(
+            request.cloud_mask
+        )
+    )
 
     return tuple(errors)
 

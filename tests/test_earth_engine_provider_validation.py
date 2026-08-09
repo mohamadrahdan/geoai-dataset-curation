@@ -198,3 +198,27 @@ def test_validate_earth_engine_export_request_rejects_invalid_request() -> None:
         "grid.transform is required for exact raster export."
         in errors
     )
+
+def test_validate_composite_request_includes_cloud_mask_errors() -> None:
+    request = EarthEngineCompositeRequest(
+        scene_ids=("scene-1",),
+        bands=("B2", "B3", "B4", "B8"),
+        cloud_mask=Sentinel2CloudMaskSpec(
+            scl_band=" ",
+            excluded_scl_classes=(),
+        ),
+    )
+
+    errors = validate_earth_engine_composite_request(
+        request
+    )
+
+    assert (
+        "cloud_mask.scl_band must not be empty."
+        in errors
+    )
+    assert (
+        "cloud_mask.excluded_scl_classes must contain "
+        "at least one class."
+        in errors
+    )

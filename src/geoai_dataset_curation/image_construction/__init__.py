@@ -96,6 +96,11 @@ from geoai_dataset_curation.image_construction.cloud_mask import (
     SENTINEL2_SCL_BAND,
     Sentinel2CloudMaskSpec,
 )
+from geoai_dataset_curation.image_construction.cloud_mask_validation import (
+    MAX_SENTINEL2_SCL_CLASS,
+    MIN_SENTINEL2_SCL_CLASS,
+    validate_sentinel2_cloud_mask_spec,
+)
 
 __all__ = [
     "AffineTransformSpec",
@@ -152,4 +157,7 @@ __all__ = [
     "DEFAULT_SENTINEL2_EXCLUDED_SCL_CLASSES",
     "SENTINEL2_SCL_BAND",
     "Sentinel2CloudMaskSpec",
+    "MAX_SENTINEL2_SCL_CLASS",
+    "MIN_SENTINEL2_SCL_CLASS",
+    "validate_sentinel2_cloud_mask_spec",
 ]
