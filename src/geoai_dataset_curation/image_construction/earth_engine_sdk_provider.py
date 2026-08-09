@@ -17,11 +17,28 @@ from geoai_dataset_curation.image_construction.earth_engine_provider import (
     EarthEngineSceneQuery,
     EarthEngineSceneReference,
 )
+from geoai_dataset_curation.image_construction.cloud_mask import (
+    Sentinel2CloudMaskSpec,
+)
 
 
 CLOUD_COVER_PROPERTY = "CLOUDY_PIXEL_PERCENTAGE"
 SYSTEM_INDEX_PROPERTY = "system:index"
 ACQUISITION_TIME_PROPERTY = "system:time_start"
+
+
+def _apply_sentinel2_cloud_mask(
+    image: Any,
+    spec: Sentinel2CloudMaskSpec,
+) -> Any:
+    "Apply one validated Sentinel-2 SCL cloud-mask policy"
+    scl = image.select(spec.scl_band)
+    clear_mask = scl.remap(
+        list(spec.excluded_scl_classes),
+        [0] * len(spec.excluded_scl_classes),
+        1,
+    )
+    return image.updateMask(clear_mask)
 
 
 class EarthEngineSdkProvider:

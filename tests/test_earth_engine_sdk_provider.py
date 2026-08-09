@@ -9,7 +9,12 @@ from geoai_dataset_curation.image_construction import (
     EarthEngineSdkProvider,
     EarthEngineProvider,
 )
-
+from geoai_dataset_curation.image_construction.cloud_mask import (
+    Sentinel2CloudMaskSpec,
+)
+from geoai_dataset_curation.image_construction.earth_engine_sdk_provider import (
+    _apply_sentinel2_cloud_mask,
+)
 
 class FakeValue:
     def __init__(self, value: Any) -> None:
@@ -152,6 +157,49 @@ class FakeEarthEngineSdk:
     ) -> FakeDate:
         self.calls.append(("Date", value))
         return FakeDate(value)
+
+
+class FakeSclImage:
+    def __init__(self) -> None:
+        self.remap_calls: list[
+            tuple[list[int], list[int], int]
+        ] = []
+
+    def remap(
+        self,
+        from_values: list[int],
+        to_values: list[int],
+        default_value: int,
+    ) -> object:
+        self.remap_calls.append(
+            (
+                from_values,
+                to_values,
+                default_value,
+            )
+        )
+        return "clear-mask"
+
+
+class FakeMaskableImage:
+    def __init__(self) -> None:
+        self.scl = FakeSclImage()
+        self.selected_bands: list[str] = []
+        self.update_mask_calls: list[object] = []
+
+    def select(
+        self,
+        band: str,
+    ) -> FakeSclImage:
+        self.selected_bands.append(band)
+        return self.scl
+
+    def updateMask(
+        self,
+        mask: object,
+    ) -> str:
+        self.update_mask_calls.append(mask)
+        return "masked-image"
 
 
 def _query() -> EarthEngineSceneQuery:
@@ -301,5 +349,48 @@ def test_sdk_provider_satisfies_provider_protocol() -> None:
     provider = EarthEngineSdkProvider(
         sdk=FakeEarthEngineSdk()
     )
-
     assert isinstance(provider, EarthEngineProvider)
+
+
+def test_cloud_masking_translates_default_policy_to_sdk_operations() -> None:
+    image = FakeMaskableImage()
+    spec = Sentinel2CloudMaskSpec()
+
+    result = _apply_sentinel2_cloud_mask(
+        image,
+        spec,
+    )
+    assert image.selected_bands == ["SCL"]
+    assert image.scl.remap_calls == [
+        (
+            [1, 3, 8, 9, 10, 11],
+            [0, 0, 0, 0, 0, 0],
+            1,
+        )
+    ]
+    assert image.update_mask_calls == [
+        "clear-mask"
+    ]
+    assert result == "masked-image"
+
+
+def test_cloud_masking_respects_custom_excluded_classes() -> None:
+    image = FakeMaskableImage()
+    spec = Sentinel2CloudMaskSpec(
+        scl_band="CUSTOM_SCL",
+        excluded_scl_classes=(3, 8, 9),
+    )
+    _apply_sentinel2_cloud_mask(
+        image,
+        spec,
+    )
+    assert image.selected_bands == [
+        "CUSTOM_SCL"
+    ]
+    assert image.scl.remap_calls == [
+        (
+            [3, 8, 9],
+            [0, 0, 0],
+            1,
+        )
+    ]
