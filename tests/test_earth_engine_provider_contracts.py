@@ -11,6 +11,7 @@ from geoai_dataset_curation.image_construction import (
     RasterGridSpec,
     Sentinel2CloudMaskSpec,
     EarthEngineAggregationMethod,
+    EarthEngineExportDestination,
 )
 
 
@@ -81,10 +82,14 @@ def test_earth_engine_export_request_uses_exact_raster_grid() -> None:
         ),
         output_name="padena_sentinel2_stack",
         grid=grid,
+        destination=EarthEngineExportDestination.DRIVE,
+        destination_folder="geoai-dataset-curation",
     )
     assert request.image.image_id == "composite:padena-sentinel2"
     assert request.output_name == "padena_sentinel2_stack"
     assert request.grid == grid
+    assert request.destination is EarthEngineExportDestination.DRIVE
+    assert request.destination_folder == "geoai-dataset-curation"
 
 
 def test_export_task_status_reports_non_terminal_running_state() -> None:

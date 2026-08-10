@@ -14,6 +14,8 @@ from geoai_dataset_curation.image_construction import (
     RasterGridSpec,
     Sentinel2CloudMaskSpec,
     EarthEngineAggregationMethod,
+    EarthEngineExportDestination,
+
 )
 
 
@@ -133,6 +135,8 @@ def test_service_validates_and_delegates_export_request() -> None:
         ),
         output_name="padena_sentinel2_stack",
         grid=make_exact_grid(),
+        destination=EarthEngineExportDestination.DRIVE,
+        destination_folder="geoai-dataset-curation",
     )
 
     result = service.start_export(request)
@@ -140,6 +144,8 @@ def test_service_validates_and_delegates_export_request() -> None:
         task_id="task-123"
     )
     assert provider.export_requests == [request]
+    assert request.destination is EarthEngineExportDestination.DRIVE
+    assert request.destination_folder == "geoai-dataset-curation"
 
 
 def test_service_rejects_invalid_export_before_delegation() -> None:
@@ -155,6 +161,8 @@ def test_service_rejects_invalid_export_before_delegation() -> None:
             pixel_size_x=10.0,
             pixel_size_y=10.0,
         ),
+        destination=EarthEngineExportDestination.DRIVE,
+        destination_folder="geoai-dataset-curation",
     )
 
     with pytest.raises(
@@ -163,6 +171,8 @@ def test_service_rejects_invalid_export_before_delegation() -> None:
     ):
         service.start_export(request)
     assert provider.export_requests == []
+    assert request.destination is EarthEngineExportDestination.DRIVE
+    assert request.destination_folder == "geoai-dataset-curation"
 
 
 def test_service_delegates_valid_task_status_request() -> None:

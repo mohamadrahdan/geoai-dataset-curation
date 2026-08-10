@@ -49,12 +49,19 @@ class EarthEngineImageReference:
     image_id: str
 
 
+class EarthEngineExportDestination(StrEnum):
+    "Supported Earth Engine export destinations"
+    DRIVE = "drive"
+
+
 @dataclass(frozen=True)
 class EarthEngineExportRequest:
     "Request for exporting one Earth Engine image on an exact grid"
     image: EarthEngineImageReference
     output_name: str
     grid: RasterGridSpec
+    destination: EarthEngineExportDestination
+    destination_folder: str
 
 
 class EarthEngineTaskState(StrEnum):

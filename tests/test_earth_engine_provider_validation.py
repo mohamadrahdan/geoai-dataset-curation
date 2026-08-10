@@ -11,6 +11,7 @@ from geoai_dataset_curation.image_construction import (
     validate_earth_engine_scene_query,
     Sentinel2CloudMaskSpec,
     EarthEngineAggregationMethod,
+    EarthEngineExportDestination,
 )
 
 
@@ -175,10 +176,14 @@ def test_validate_earth_engine_export_request_accepts_valid_request() -> None:
         ),
         output_name="padena_sentinel2_stack",
         grid=make_exact_grid(),
+        destination=EarthEngineExportDestination.DRIVE,
+        destination_folder="geoai-dataset-curation",
     )
 
     errors = validate_earth_engine_export_request(request)
     assert errors == ()
+    assert request.destination is EarthEngineExportDestination.DRIVE
+    assert request.destination_folder == "geoai-dataset-curation"
 
 
 def test_validate_earth_engine_export_request_rejects_invalid_request() -> None:
@@ -192,6 +197,8 @@ def test_validate_earth_engine_export_request_rejects_invalid_request() -> None:
             pixel_size_x=10.0,
             pixel_size_y=10.0,
         ),
+        destination=EarthEngineExportDestination.DRIVE,
+        destination_folder="geoai-dataset-curation",
     )
 
     errors = validate_earth_engine_export_request(request)
@@ -201,6 +208,8 @@ def test_validate_earth_engine_export_request_rejects_invalid_request() -> None:
         "grid.transform is required for exact raster export."
         in errors
     )
+    assert request.destination is EarthEngineExportDestination.DRIVE
+    assert request.destination_folder == "geoai-dataset-curation"
 
 def test_validate_composite_request_includes_cloud_mask_errors() -> None:
     request = EarthEngineCompositeRequest(
@@ -224,5 +233,26 @@ def test_validate_composite_request_includes_cloud_mask_errors() -> None:
     assert (
         "cloud_mask.excluded_scl_classes must contain "
         "at least one class."
+        in errors
+    )
+
+
+def test_validate_earth_engine_export_request_rejects_empty_destination_folder() -> None:
+    request = EarthEngineExportRequest(
+        image=EarthEngineImageReference(
+            image_id="composite:test"
+        ),
+        output_name="sentinel2_stack",
+        grid=make_exact_grid(),
+        destination=EarthEngineExportDestination.DRIVE,
+        destination_folder=" ",
+    )
+
+    errors = validate_earth_engine_export_request(
+        request
+    )
+
+    assert (
+        "destination_folder must not be empty."
         in errors
     )

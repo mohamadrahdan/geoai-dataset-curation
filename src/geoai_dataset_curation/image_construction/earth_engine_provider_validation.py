@@ -132,6 +132,11 @@ def validate_earth_engine_export_request(
     if not request.output_name.strip():
         errors.append("output_name must not be empty.")
 
+    if not request.destination_folder.strip():
+        errors.append(
+            "destination_folder must not be empty."
+        )
+
     errors.extend(
         validate_exact_raster_grid_spec(request.grid)
     )
