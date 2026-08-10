@@ -493,7 +493,6 @@ def test_sdk_provider_builds_median_composite() -> None:
     assert reference.image_id == (
         "sentinel2-composite:median:2-scenes"
     )
-    assert (
-        sdk.ImageCollection.last_collection.median_calls
-        == 1
-    )
+    collection = sdk.ImageCollection.last_collection
+    assert collection is not None
+    assert collection.median_calls == 1
