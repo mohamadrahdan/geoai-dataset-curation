@@ -12,6 +12,8 @@ from geoai_dataset_curation.image_construction import (
     EarthEngineTaskState,
     FakeEarthEngineProvider,
     RasterGridSpec,
+    Sentinel2CloudMaskSpec,
+    EarthEngineAggregationMethod,
 )
 
 
@@ -89,6 +91,8 @@ def test_service_validates_and_delegates_composite_request() -> None:
     request = EarthEngineCompositeRequest(
         scene_ids=("scene-1", "scene-2"),
         bands=("B2", "B3", "B4", "B8"),
+        cloud_mask=Sentinel2CloudMaskSpec(),
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
     )
 
     result = service.build_composite(request)
@@ -101,9 +105,12 @@ def test_service_validates_and_delegates_composite_request() -> None:
 def test_service_rejects_invalid_composite_before_delegation() -> None:
     provider = FakeEarthEngineProvider()
     service = EarthEngineService(provider)
+
     request = EarthEngineCompositeRequest(
         scene_ids=(),
         bands=(),
+        cloud_mask=Sentinel2CloudMaskSpec(),
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
     )
 
     with pytest.raises(

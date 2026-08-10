@@ -16,12 +16,30 @@ from geoai_dataset_curation.image_construction.earth_engine_provider import (
     EarthEngineImageReference,
     EarthEngineSceneQuery,
     EarthEngineSceneReference,
+    EarthEngineAggregationMethod,
+)
+from geoai_dataset_curation.image_construction.cloud_mask import (
+    Sentinel2CloudMaskSpec,
 )
 
 
 CLOUD_COVER_PROPERTY = "CLOUDY_PIXEL_PERCENTAGE"
 SYSTEM_INDEX_PROPERTY = "system:index"
 ACQUISITION_TIME_PROPERTY = "system:time_start"
+
+
+def _apply_sentinel2_cloud_mask(
+    image: Any,
+    spec: Sentinel2CloudMaskSpec,
+) -> Any:
+    "Apply one validated Sentinel-2 SCL cloud-mask policy"
+    scl = image.select(spec.scl_band)
+    clear_mask = scl.remap(
+        list(spec.excluded_scl_classes),
+        [0] * len(spec.excluded_scl_classes),
+        1,
+    )
+    return image.updateMask(clear_mask)
 
 
 class EarthEngineSdkProvider:
@@ -32,6 +50,7 @@ class EarthEngineSdkProvider:
         sdk: Any = ee,
     ) -> None:
         self._sdk = sdk
+        self._images: dict[str, Any] = {}
 
     def search_sentinel2_scenes(
         self,
@@ -122,10 +141,59 @@ class EarthEngineSdkProvider:
         self,
         request: EarthEngineCompositeRequest,
     ) -> EarthEngineImageReference:
-        "Build a composite through the Earth Engine SDK"
-        raise NotImplementedError(
-            "Earth Engine composite construction is not implemented yet."
-        )
+        "Build a cloud-masked Sentinel-2 temporal composite"
+        try:
+            images = []
+
+            for scene_id in request.scene_ids:
+                image = self._sdk.Image(scene_id)
+
+                masked_image = _apply_sentinel2_cloud_mask(
+                    image,
+                    request.cloud_mask,
+                )
+
+                selected_image = masked_image.select(
+                    list(request.bands)
+                )
+
+                images.append(selected_image)
+
+            collection = self._sdk.ImageCollection.fromImages(
+                images
+            )
+
+            if (
+                request.aggregation_method
+                == EarthEngineAggregationMethod.MEDIAN
+            ):
+                composite = collection.median()
+            else:
+                raise ValueError(
+                    "Unsupported Earth Engine aggregation method: "
+                    f"{request.aggregation_method}"
+                )
+            image_id = (
+                "sentinel2-composite:"
+                f"{request.aggregation_method.value}:"
+                f"{len(request.scene_ids)}-scenes"
+            )
+            self._images[image_id] = composite
+            return EarthEngineImageReference(
+                image_id=image_id
+            )
+
+        except RequestException as exc:
+            raise EarthEngineConnectionError(
+                "Earth Engine composite construction failed "
+                "because of a connection error."
+            ) from exc
+        except EarthEngineConnectionError:
+            raise
+        except Exception as exc:
+            raise EarthEngineRequestError(
+                "Earth Engine composite construction failed."
+            ) from exc
 
     def start_export(
         self,

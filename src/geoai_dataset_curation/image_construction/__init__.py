@@ -40,6 +40,7 @@ from geoai_dataset_curation.image_construction.earth_engine_provider import (
     EarthEngineSceneQuery,
     EarthEngineSceneReference,
     EarthEngineTaskState,
+    EarthEngineAggregationMethod,
 )
 from geoai_dataset_curation.image_construction.fake_earth_engine_provider import (
     FakeEarthEngineProvider,
@@ -90,6 +91,16 @@ from geoai_dataset_curation.image_construction.earth_engine_sdk_runtime import (
 )
 from geoai_dataset_curation.image_construction.earth_engine_sdk_provider import (
     EarthEngineSdkProvider,
+)
+from geoai_dataset_curation.image_construction.cloud_mask import (
+    DEFAULT_SENTINEL2_EXCLUDED_SCL_CLASSES,
+    SENTINEL2_SCL_BAND,
+    Sentinel2CloudMaskSpec,
+)
+from geoai_dataset_curation.image_construction.cloud_mask_validation import (
+    MAX_SENTINEL2_SCL_CLASS,
+    MIN_SENTINEL2_SCL_CLASS,
+    validate_sentinel2_cloud_mask_spec,
 )
 
 __all__ = [
@@ -144,4 +155,11 @@ __all__ = [
     "initialize_earth_engine",
     "EarthEngineSdkRuntime",
     "EarthEngineSdkProvider",
+    "DEFAULT_SENTINEL2_EXCLUDED_SCL_CLASSES",
+    "SENTINEL2_SCL_BAND",
+    "Sentinel2CloudMaskSpec",
+    "MAX_SENTINEL2_SCL_CLASS",
+    "MIN_SENTINEL2_SCL_CLASS",
+    "validate_sentinel2_cloud_mask_spec",
+    "EarthEngineAggregationMethod",
 ]

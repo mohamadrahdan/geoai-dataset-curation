@@ -9,6 +9,8 @@ from geoai_dataset_curation.image_construction import (
     validate_earth_engine_composite_request,
     validate_earth_engine_export_request,
     validate_earth_engine_scene_query,
+    Sentinel2CloudMaskSpec,
+    EarthEngineAggregationMethod,
 )
 
 
@@ -142,6 +144,8 @@ def test_validate_earth_engine_composite_request_accepts_valid_request() -> None
     request = EarthEngineCompositeRequest(
         scene_ids=("scene-1", "scene-2"),
         bands=("B2", "B3", "B4", "B8"),
+        cloud_mask=Sentinel2CloudMaskSpec(),
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
     )
 
     errors = validate_earth_engine_composite_request(request)
@@ -152,9 +156,12 @@ def test_validate_earth_engine_composite_request_rejects_invalid_values() -> Non
     request = EarthEngineCompositeRequest(
         scene_ids=("scene-1", "scene-1", " "),
         bands=("B2", "B2", ""),
+        cloud_mask=Sentinel2CloudMaskSpec(),
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
     )
 
     errors = validate_earth_engine_composite_request(request)
+
     assert "scene_ids must not contain duplicates." in errors
     assert "scene_ids must not contain empty values." in errors
     assert "bands must not contain duplicates." in errors
@@ -192,5 +199,30 @@ def test_validate_earth_engine_export_request_rejects_invalid_request() -> None:
     assert "output_name must not be empty." in errors
     assert (
         "grid.transform is required for exact raster export."
+        in errors
+    )
+
+def test_validate_composite_request_includes_cloud_mask_errors() -> None:
+    request = EarthEngineCompositeRequest(
+        scene_ids=("scene-1",),
+        bands=("B2", "B3", "B4", "B8"),
+        cloud_mask=Sentinel2CloudMaskSpec(
+            scl_band=" ",
+            excluded_scl_classes=(),
+        ),
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
+    )
+
+    errors = validate_earth_engine_composite_request(
+        request
+    )
+
+    assert (
+        "cloud_mask.scl_band must not be empty."
+        in errors
+    )
+    assert (
+        "cloud_mask.excluded_scl_classes must contain "
+        "at least one class."
         in errors
     )
