@@ -10,6 +10,7 @@ from geoai_dataset_curation.image_construction import (
     validate_earth_engine_export_request,
     validate_earth_engine_scene_query,
     Sentinel2CloudMaskSpec,
+    EarthEngineAggregationMethod,
 )
 
 
@@ -144,6 +145,7 @@ def test_validate_earth_engine_composite_request_accepts_valid_request() -> None
         scene_ids=("scene-1", "scene-2"),
         bands=("B2", "B3", "B4", "B8"),
         cloud_mask=Sentinel2CloudMaskSpec(),
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
     )
 
     errors = validate_earth_engine_composite_request(request)
@@ -155,6 +157,7 @@ def test_validate_earth_engine_composite_request_rejects_invalid_values() -> Non
         scene_ids=("scene-1", "scene-1", " "),
         bands=("B2", "B2", ""),
         cloud_mask=Sentinel2CloudMaskSpec(),
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
     )
 
     errors = validate_earth_engine_composite_request(request)
@@ -207,6 +210,7 @@ def test_validate_composite_request_includes_cloud_mask_errors() -> None:
             scl_band=" ",
             excluded_scl_classes=(),
         ),
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
     )
 
     errors = validate_earth_engine_composite_request(

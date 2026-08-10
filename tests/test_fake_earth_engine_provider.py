@@ -12,6 +12,7 @@ from geoai_dataset_curation.image_construction import (
     FakeEarthEngineProvider,
     RasterGridSpec,
     Sentinel2CloudMaskSpec,
+    EarthEngineAggregationMethod,
 )
 
 
@@ -78,6 +79,7 @@ def test_fake_provider_returns_configured_composite_reference() -> None:
         scene_ids=("scene-1", "scene-2"),
         bands=("B2", "B3", "B4", "B8"),
         cloud_mask=Sentinel2CloudMaskSpec(),
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
     )
     image = provider.build_composite(request)
     assert image == EarthEngineImageReference(

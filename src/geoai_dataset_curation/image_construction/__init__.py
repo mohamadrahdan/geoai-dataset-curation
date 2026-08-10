@@ -40,6 +40,7 @@ from geoai_dataset_curation.image_construction.earth_engine_provider import (
     EarthEngineSceneQuery,
     EarthEngineSceneReference,
     EarthEngineTaskState,
+    EarthEngineAggregationMethod,
 )
 from geoai_dataset_curation.image_construction.fake_earth_engine_provider import (
     FakeEarthEngineProvider,
@@ -160,4 +161,5 @@ __all__ = [
     "MAX_SENTINEL2_SCL_CLASS",
     "MIN_SENTINEL2_SCL_CLASS",
     "validate_sentinel2_cloud_mask_spec",
+    "EarthEngineAggregationMethod",
 ]

@@ -15,11 +15,14 @@ from geoai_dataset_curation.image_construction.cloud_mask import (
 from geoai_dataset_curation.image_construction.earth_engine_sdk_provider import (
     _apply_sentinel2_cloud_mask,
 )
+from geoai_dataset_curation.image_construction.earth_engine_provider import (
+    EarthEngineAggregationMethod,
+    EarthEngineCompositeRequest,
+)
 
 class FakeValue:
     def __init__(self, value: Any) -> None:
         self._value = value
-
     def getInfo(self) -> Any:
         return self._value
 
@@ -27,7 +30,6 @@ class FakeValue:
 class FakeDate:
     def __init__(self, value: Any) -> None:
         self._value = value
-
     def format(self, pattern: str) -> FakeValue:
         assert pattern == "YYYY-MM-dd"
         return FakeValue("2024-05-18")
@@ -110,55 +112,6 @@ class FakeFilter:
         )
 
 
-class FakeEarthEngineSdk:
-    Filter = FakeFilter
-
-    def __init__(
-        self,
-        *,
-        result: dict[str, Any] | None = None,
-        error: Exception | None = None,
-    ) -> None:
-        self.result = result or {
-            "features": [],
-        }
-        self.error = error
-        self.calls: list[tuple[str, Any]] = []
-
-    def Geometry(
-        self,
-        geojson: dict[str, object],
-    ) -> dict[str, object]:
-        self.calls.append(("Geometry", geojson))
-        return geojson
-
-    def ImageCollection(
-        self,
-        collection_id: str,
-    ) -> FakeCollection:
-        if self.error is not None:
-            raise self.error
-
-        self.calls.append(
-            (
-                "ImageCollection",
-                collection_id,
-            )
-        )
-
-        return FakeCollection(
-            result=self.result,
-            calls=self.calls,
-        )
-
-    def Date(
-        self,
-        value: Any,
-    ) -> FakeDate:
-        self.calls.append(("Date", value))
-        return FakeDate(value)
-
-
 class FakeSclImage:
     def __init__(self) -> None:
         self.remap_calls: list[
@@ -189,17 +142,134 @@ class FakeMaskableImage:
 
     def select(
         self,
-        band: str,
-    ) -> FakeSclImage:
-        self.selected_bands.append(band)
-        return self.scl
+        bands: str | list[str],
+    ) -> object:
+        if isinstance(bands, str):
+            self.selected_bands.append(bands)
+            return self.scl
+
+        self.selected_bands.extend(bands)
+        return self
 
     def updateMask(
         self,
         mask: object,
-    ) -> str:
+    ) -> "FakeMaskableImage":
         self.update_mask_calls.append(mask)
-        return "masked-image"
+        return self
+    
+
+class FakeCompositeCollection:
+    def __init__(
+        self,
+        images: list[object],
+    ) -> None:
+        self.images = images
+        self.median_calls = 0
+
+    def median(self) -> str:
+        self.median_calls += 1
+        return "median-composite"
+
+
+class FakeImageCollectionFactory:
+    def __init__(
+        self,
+        *,
+        result: dict[str, Any],
+        error: Exception | None,
+        calls: list[tuple[str, Any]],
+    ) -> None:
+        self._result = result
+        self._error = error
+        self._calls = calls
+        self.from_images_calls: list[list[object]] = []
+        self.last_collection: FakeCompositeCollection | None = None
+
+    def __call__(
+        self,
+        collection_id: str,
+    ) -> FakeCollection:
+        if self._error is not None:
+            raise self._error
+
+        self._calls.append(
+            (
+                "ImageCollection",
+                collection_id,
+            )
+        )
+
+        return FakeCollection(
+            result=self._result,
+            calls=self._calls,
+        )
+
+    def fromImages(
+        self,
+        images: list[object],
+    ) -> FakeCompositeCollection:
+        self.from_images_calls.append(images)
+
+        collection = FakeCompositeCollection(
+            images
+        )
+        self.last_collection = collection
+
+        return collection
+
+
+class FakeEarthEngineSdk:
+    Filter = FakeFilter
+
+    def __init__(
+        self,
+        *,
+        result: dict[str, Any] | None = None,
+        error: Exception | None = None,
+    ) -> None:
+        self.images: dict[str, object] = {}
+        self.result = result or {
+            "features": [],
+        }
+        self.error = error
+        self.calls: list[tuple[str, Any]] = []
+
+        self.ImageCollection = FakeImageCollectionFactory(
+            result=self.result,
+            error=self.error,
+            calls=self.calls,
+        )
+
+    def Geometry(
+        self,
+        geojson: dict[str, object],
+    ) -> dict[str, object]:
+        self.calls.append(
+            (
+                "Geometry",
+                geojson,
+            )
+        )
+        return geojson
+
+    def Date(
+        self,
+        value: Any,
+    ) -> FakeDate:
+        self.calls.append(
+            (
+                "Date",
+                value,
+            )
+        )
+        return FakeDate(value)
+
+    def Image(
+        self,
+        scene_id: str,
+    ) -> object:
+        return self.images[scene_id]
 
 
 def _query() -> EarthEngineSceneQuery:
@@ -371,7 +441,8 @@ def test_cloud_masking_translates_default_policy_to_sdk_operations() -> None:
     assert image.update_mask_calls == [
         "clear-mask"
     ]
-    assert result == "masked-image"
+    #assert result == "masked-image"
+    assert result is image
 
 
 def test_cloud_masking_respects_custom_excluded_classes() -> None:
@@ -394,3 +465,35 @@ def test_cloud_masking_respects_custom_excluded_classes() -> None:
             1,
         )
     ]
+
+def test_sdk_provider_builds_median_composite() -> None:
+    sdk = FakeEarthEngineSdk()
+
+    scene_1 = FakeMaskableImage()
+    scene_2 = FakeMaskableImage()
+
+    sdk.images = {
+        "scene-1": scene_1,
+        "scene-2": scene_2,
+    }
+
+    provider = EarthEngineSdkProvider(
+        sdk=sdk
+    )
+
+    request = EarthEngineCompositeRequest(
+        scene_ids=("scene-1", "scene-2"),
+        bands=("B2", "B3", "B4", "B8"),
+        cloud_mask=Sentinel2CloudMaskSpec(),
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
+    )
+
+    reference = provider.build_composite(request)
+
+    assert reference.image_id == (
+        "sentinel2-composite:median:2-scenes"
+    )
+    assert (
+        sdk.ImageCollection.last_collection.median_calls
+        == 1
+    )

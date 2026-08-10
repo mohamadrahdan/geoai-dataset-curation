@@ -8,6 +8,7 @@ from geoai_dataset_curation.image_construction.contracts import (
 from geoai_dataset_curation.image_construction.cloud_mask import (
     Sentinel2CloudMaskSpec,
 )
+from enum import StrEnum
 
 
 @dataclass(frozen=True)
@@ -28,12 +29,18 @@ class EarthEngineSceneReference:
     cloud_cover: float
 
 
+class EarthEngineAggregationMethod(StrEnum):
+    "Supported temporal aggregation methods"
+    MEDIAN = "median"
+
+
 @dataclass(frozen=True)
 class EarthEngineCompositeRequest:
     "Request for constructing one Sentinel-2 image composite"
     scene_ids: tuple[str, ...]
     bands: tuple[str, ...]
     cloud_mask: Sentinel2CloudMaskSpec
+    aggregation_method: EarthEngineAggregationMethod
 
 
 @dataclass(frozen=True)

@@ -10,6 +10,7 @@ from geoai_dataset_curation.image_construction import (
     EarthEngineTaskState,
     RasterGridSpec,
     Sentinel2CloudMaskSpec,
+    EarthEngineAggregationMethod,
 )
 
 
@@ -47,10 +48,15 @@ def test_earth_engine_composite_request_stores_processing_contract() -> None:
         scene_ids=("scene-1", "scene-2"),
         bands=("B2", "B3", "B4", "B8"),
         cloud_mask=cloud_mask,
+        aggregation_method=EarthEngineAggregationMethod.MEDIAN,
     )
     assert request.scene_ids == ("scene-1", "scene-2")
     assert request.bands == ("B2", "B3", "B4", "B8")
     assert request.cloud_mask == cloud_mask
+    assert (
+        request.aggregation_method
+        == EarthEngineAggregationMethod.MEDIAN
+    )
 
 
 def test_earth_engine_export_request_uses_exact_raster_grid() -> None:
