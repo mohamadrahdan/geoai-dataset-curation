@@ -17,6 +17,8 @@ from geoai_dataset_curation.image_construction.earth_engine_provider import (
     EarthEngineSceneQuery,
     EarthEngineSceneReference,
     EarthEngineAggregationMethod,
+    EarthEngineExportDestination,
+    EarthEngineTaskState,
 )
 from geoai_dataset_curation.image_construction.cloud_mask import (
     Sentinel2CloudMaskSpec,
@@ -41,6 +43,67 @@ def _apply_sentinel2_cloud_mask(
     )
     return image.updateMask(clear_mask)
 
+def _build_drive_export_parameters(
+    *,
+    sdk: Any,
+    image: Any,
+    request: EarthEngineExportRequest,
+) -> dict[str, Any]:
+    "Translate one exact-grid export request to Earth Engine parameters"
+    transform = request.grid.transform
+    if transform is None:
+        raise ValueError(
+            "Earth Engine export requires an exact raster transform."
+        )
+
+    left = transform.c
+    top = transform.f
+    right = left + request.grid.width * transform.a
+    bottom = top + request.grid.height * transform.e
+    region = sdk.Geometry.Rectangle(
+        [
+            left,
+            bottom,
+            right,
+            top,
+        ],
+        request.grid.crs,
+        False,
+    )
+    return {
+        "image": image,
+        "description": request.output_name,
+        "folder": request.destination_folder,
+        "fileNamePrefix": request.output_name,
+        "region": region,
+        "crs": request.grid.crs,
+        "crsTransform": list(
+            transform.as_tuple
+        ),
+        "fileFormat": "GeoTIFF",
+    }
+
+def _normalize_export_task_state(
+    raw_state: str,
+) -> EarthEngineTaskState:
+    """Normalize one Earth Engine SDK task state."""
+
+    state_mapping = {
+        "READY": EarthEngineTaskState.READY,
+        "RUNNING": EarthEngineTaskState.RUNNING,
+        "COMPLETED": EarthEngineTaskState.COMPLETED,
+        "FAILED": EarthEngineTaskState.FAILED,
+        "CANCELLED": EarthEngineTaskState.CANCELLED,
+        "CANCEL_REQUESTED": EarthEngineTaskState.RUNNING,
+    }
+
+    try:
+        return state_mapping[raw_state]
+    except KeyError as exc:
+        raise ValueError(
+            "Unsupported Earth Engine task state: "
+            f"{raw_state}"
+        ) from exc
 
 class EarthEngineSdkProvider:
     "Execute Earth Engine provider operations through the Python SDK"
@@ -51,6 +114,7 @@ class EarthEngineSdkProvider:
     ) -> None:
         self._sdk = sdk
         self._images: dict[str, Any] = {}
+        self._tasks: dict[str, Any] = {}
 
     def search_sentinel2_scenes(
         self,
@@ -93,25 +157,20 @@ class EarthEngineSdkProvider:
             ) from error
 
         features = result.get("features", [])
-
         scene_references: list[EarthEngineSceneReference] = []
 
         for feature in features:
             properties = feature.get("properties", {})
-
             scene_id = feature.get("id") or properties.get(
                 SYSTEM_INDEX_PROPERTY,
                 "",
             )
-
             acquisition_time = properties.get(
                 ACQUISITION_TIME_PROPERTY
             )
-
             cloud_cover = properties.get(
                 CLOUD_COVER_PROPERTY
             )
-
             if (
                 not scene_id
                 or acquisition_time is None
@@ -120,13 +179,11 @@ class EarthEngineSdkProvider:
                 raise EarthEngineRequestError(
                     "Earth Engine scene metadata is incomplete."
                 )
-
             acquisition_date = (
                 self._sdk.Date(acquisition_time)
                 .format("YYYY-MM-dd")
                 .getInfo()
             )
-
             scene_references.append(
                 EarthEngineSceneReference(
                     scene_id=str(scene_id),
@@ -144,21 +201,17 @@ class EarthEngineSdkProvider:
         "Build a cloud-masked Sentinel-2 temporal composite"
         try:
             images = []
-
             for scene_id in request.scene_ids:
                 image = self._sdk.Image(scene_id)
-
                 masked_image = _apply_sentinel2_cloud_mask(
                     image,
                     request.cloud_mask,
                 )
-
                 selected_image = masked_image.select(
                     list(request.bands)
                 )
 
                 images.append(selected_image)
-
             collection = self._sdk.ImageCollection.fromImages(
                 images
             )
@@ -199,16 +252,89 @@ class EarthEngineSdkProvider:
         self,
         request: EarthEngineExportRequest,
     ) -> EarthEngineExportTaskReference:
-        "Start an Earth Engine export task"
-        raise NotImplementedError(
-            "Earth Engine export execution is not implemented yet."
-        )
+        "Start one exact-grid Earth Engine image export"
+        try:
+            image_id = request.image.image_id
+            if image_id not in self._images:
+                raise ValueError(
+                    "Earth Engine image reference could not be resolved: "
+                    f"{image_id}"
+                )
+
+            image = self._images[image_id]
+            if (
+                request.destination
+                != EarthEngineExportDestination.DRIVE
+            ):
+                raise ValueError(
+                    "Unsupported Earth Engine export destination: "
+                    f"{request.destination}"
+                )
+            params = _build_drive_export_parameters(
+                sdk=self._sdk,
+                image=image,
+                request=request,
+            )
+            task = self._sdk.batch.Export.image.toDrive(
+                **params
+            )
+            task.start()
+            task_id = task.id
+            self._tasks[task_id] = task
+            return EarthEngineExportTaskReference(
+                task_id=task_id
+)
+
+        except RequestException as exc:
+            raise EarthEngineConnectionError(
+                "Earth Engine export task could not reach the service."
+            ) from exc
+        except EarthEngineConnectionError:
+            raise
+        except Exception as exc:
+            raise EarthEngineRequestError(
+                "Earth Engine export task could not be started."
+            ) from exc
 
     def get_export_status(
         self,
         task: EarthEngineExportTaskReference,
     ) -> EarthEngineExportTaskStatus:
-        "Return the status of an Earth Engine export task"
-        raise NotImplementedError(
-            "Earth Engine export status handling is not implemented yet."
-        )
+        "Return normalized status for one Earth Engine export task"
+        try:
+            if task.task_id not in self._tasks:
+                raise ValueError(
+                    "Earth Engine export task reference "
+                    "could not be resolved: "
+                    f"{task.task_id}"
+                )
+            sdk_task = self._tasks[
+                task.task_id
+            ]
+            raw_status = sdk_task.status()
+            raw_state = str(
+                raw_status["state"]
+            )
+            state = _normalize_export_task_state(
+                raw_state
+            )
+            error_message = raw_status.get(
+                "error_message"
+            )
+            return EarthEngineExportTaskStatus(
+                task_id=task.task_id,
+                state=state,
+                error_message=error_message,
+            )
+        except RequestException as exc:
+            raise EarthEngineConnectionError(
+                "Earth Engine export task status "
+                "could not reach the service."
+            ) from exc
+        except EarthEngineConnectionError:
+            raise
+        except Exception as exc:
+            raise EarthEngineRequestError(
+                "Earth Engine export task status "
+                "could not be retrieved."
+            ) from exc
