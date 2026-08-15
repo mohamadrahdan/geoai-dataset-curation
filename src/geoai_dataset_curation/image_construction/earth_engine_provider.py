@@ -10,7 +10,6 @@ from geoai_dataset_curation.image_construction.cloud_mask import (
 )
 from enum import StrEnum
 
-
 @dataclass(frozen=True)
 class EarthEngineSceneQuery:
     "Provider-neutral request for Sentinel-2 scene discovery"
@@ -122,8 +121,10 @@ class EarthEngineProvider(Protocol):
         self,
         request: EarthEngineExportRequest,
     ) -> EarthEngineExportTaskReference:
-        "Start an exact-grid image export"
-        ...
+        "Start an Earth Engine export task"
+        raise NotImplementedError(
+            "Earth Engine export execution is not implemented yet."
+        )
 
     def get_export_status(
         self,

@@ -246,6 +246,7 @@ class FakeEarthEngineSdk:
             error=self.error,
             calls=self.calls,
         )
+        self.batch = FakeBatchNamespace()
 
     def Date(
         self,
@@ -300,6 +301,58 @@ class FakeGeometryFactory:
             )
         )
         return "export-region"
+
+
+class FakeExportTask:
+    def __init__(
+        self,
+        task_id: str,
+    ) -> None:
+        self.id = task_id
+        self.start_calls = 0
+
+    def start(self) -> None:
+        self.start_calls += 1
+
+
+class FakeDriveExporter:
+    def __init__(self) -> None:
+        self.to_drive_calls: list[
+            dict[str, object]
+        ] = []
+        self.last_task: FakeExportTask | None = None
+
+    def toDrive(
+        self,
+        **kwargs: object,
+    ) -> FakeExportTask:
+        self.to_drive_calls.append(
+            dict(kwargs)
+        )
+
+        task = FakeExportTask(
+            "task-123"
+        )
+
+        self.last_task = task
+
+        return task
+
+
+class FakeImageExportNamespace:
+    def __init__(self) -> None:
+        self.image = FakeDriveExporter()
+
+
+class FakeExportNamespace:
+    def __init__(self) -> None:
+        self.image = FakeDriveExporter()
+
+
+class FakeBatchNamespace:
+    def __init__(self) -> None:
+        self.Export = FakeExportNamespace()
+
 
 def _query() -> EarthEngineSceneQuery:
     return EarthEngineSceneQuery(
@@ -600,3 +653,92 @@ def test_sdk_export_parameters_preserve_exact_grid() -> None:
     ]
     assert "dimensions" not in params
     assert "scale" not in params
+
+
+def test_sdk_provider_starts_drive_export_task() -> None:
+    sdk = FakeEarthEngineSdk()
+    provider = EarthEngineSdkProvider(
+        sdk=sdk
+    )
+    image = object()
+    image_id = "composite:test"
+    provider._images[image_id] = image
+    request = EarthEngineExportRequest(
+        image=EarthEngineImageReference(
+            image_id=image_id
+        ),
+        output_name="sentinel2_stack",
+        grid=RasterGridSpec(
+            crs="EPSG:32639",
+            width=512,
+            height=512,
+            pixel_size_x=10.0,
+            pixel_size_y=10.0,
+            transform=AffineTransformSpec(
+                a=10.0,
+                b=0.0,
+                c=500000.0,
+                d=0.0,
+                e=-10.0,
+                f=3600000.0,
+            ),
+        ),
+        destination=(
+            EarthEngineExportDestination.DRIVE
+        ),
+        destination_folder=(
+            "geoai-dataset-curation"
+        ),
+    )
+    reference = provider.start_export(
+        request
+    )
+    assert reference.task_id == "task-123"
+    exporter = sdk.batch.Export.image
+    assert len(
+        exporter.to_drive_calls
+    ) == 1
+    task = exporter.last_task
+    assert task is not None
+    assert task.start_calls == 1
+
+
+def test_sdk_provider_rejects_unknown_export_image_reference() -> None:
+    sdk = FakeEarthEngineSdk()
+    provider = EarthEngineSdkProvider(
+        sdk=sdk
+    )
+    request = EarthEngineExportRequest(
+        image=EarthEngineImageReference(
+            image_id="missing-image"
+        ),
+        output_name="sentinel2_stack",
+        grid=RasterGridSpec(
+            crs="EPSG:32639",
+            width=512,
+            height=512,
+            pixel_size_x=10.0,
+            pixel_size_y=10.0,
+            transform=AffineTransformSpec(
+                a=10.0,
+                b=0.0,
+                c=500000.0,
+                d=0.0,
+                e=-10.0,
+                f=3600000.0,
+            ),
+        ),
+        destination=(
+            EarthEngineExportDestination.DRIVE
+        ),
+        destination_folder=(
+            "geoai-dataset-curation"
+        ),
+    )
+    with pytest.raises(
+        EarthEngineRequestError,
+        match="export task could not be started",
+    ):
+        provider.start_export(
+            request
+        )

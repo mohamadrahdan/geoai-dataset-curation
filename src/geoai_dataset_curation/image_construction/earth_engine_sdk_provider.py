@@ -17,6 +17,7 @@ from geoai_dataset_curation.image_construction.earth_engine_provider import (
     EarthEngineSceneQuery,
     EarthEngineSceneReference,
     EarthEngineAggregationMethod,
+    EarthEngineExportDestination,
 )
 from geoai_dataset_curation.image_construction.cloud_mask import (
     Sentinel2CloudMaskSpec,
@@ -238,10 +239,57 @@ class EarthEngineSdkProvider:
         self,
         request: EarthEngineExportRequest,
     ) -> EarthEngineExportTaskReference:
-        "Start an Earth Engine export task"
-        raise NotImplementedError(
-            "Earth Engine export execution is not implemented yet."
-        )
+        """Start one exact-grid Earth Engine image export."""
+
+        try:
+            image_id = request.image.image_id
+
+            if image_id not in self._images:
+                raise ValueError(
+                    "Earth Engine image reference could not be resolved: "
+                    f"{image_id}"
+                )
+
+            image = self._images[image_id]
+
+            if (
+                request.destination
+                != EarthEngineExportDestination.DRIVE
+            ):
+                raise ValueError(
+                    "Unsupported Earth Engine export destination: "
+                    f"{request.destination}"
+                )
+
+            params = _build_drive_export_parameters(
+                sdk=self._sdk,
+                image=image,
+                request=request,
+            )
+
+            task = self._sdk.batch.Export.image.toDrive(
+                **params
+            )
+
+            task.start()
+
+            return EarthEngineExportTaskReference(
+                task_id=task.id
+            )
+
+        except RequestException as exc:
+            raise EarthEngineConnectionError(
+                "Earth Engine export task could not reach the service."
+            ) from exc
+
+        except EarthEngineConnectionError:
+            raise
+
+        except Exception as exc:
+            raise EarthEngineRequestError(
+                "Earth Engine export task could not be started."
+            ) from exc
+
 
     def get_export_status(
         self,
