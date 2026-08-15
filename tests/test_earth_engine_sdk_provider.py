@@ -24,6 +24,8 @@ from geoai_dataset_curation.image_construction.earth_engine_provider import (
 from geoai_dataset_curation.image_construction.earth_engine_sdk_provider import (
     _apply_sentinel2_cloud_mask,
     _build_drive_export_parameters,
+    EarthEngineExportTaskReference,
+    EarthEngineTaskState,
 )
 
 
@@ -307,12 +309,25 @@ class FakeExportTask:
     def __init__(
         self,
         task_id: str,
+        *,
+        status_result: dict[str, object] | None = None,
     ) -> None:
         self.id = task_id
         self.start_calls = 0
-
+        self.status_calls = 0
+        self.status_result = (
+            status_result
+            or {
+                "state": "READY",
+            }
+        )
     def start(self) -> None:
         self.start_calls += 1
+    def status(
+        self,
+    ) -> dict[str, object]:
+        self.status_calls += 1
+        return self.status_result
 
 
 class FakeDriveExporter:
@@ -741,4 +756,89 @@ def test_sdk_provider_rejects_unknown_export_image_reference() -> None:
     ):
         provider.start_export(
             request
+        )
+
+
+def test_sdk_provider_normalizes_completed_export_status() -> None:
+    sdk = FakeEarthEngineSdk()
+
+    provider = EarthEngineSdkProvider(
+        sdk=sdk
+    )
+    sdk_task = FakeExportTask(
+        "task-123",
+        status_result={
+            "state": "COMPLETED",
+        },
+    )
+    provider._tasks[
+        "task-123"
+    ] = sdk_task
+    status = provider.get_export_status(
+        EarthEngineExportTaskReference(
+            task_id="task-123"
+        )
+    )
+    assert status.task_id == "task-123"
+    assert (
+        status.state
+        is EarthEngineTaskState.COMPLETED
+    )
+    assert status.error_message is None
+    assert status.is_terminal is True
+    assert status.succeeded is True
+    assert sdk_task.status_calls == 1
+
+
+def test_sdk_provider_preserves_failed_export_error() -> None:
+    sdk = FakeEarthEngineSdk()
+    provider = EarthEngineSdkProvider(
+        sdk=sdk
+    )
+    sdk_task = FakeExportTask(
+        "task-456",
+        status_result={
+            "state": "FAILED",
+            "error_message": (
+                "Export exceeded pixel limit."
+            ),
+        },
+    )
+    provider._tasks[
+        "task-456"
+    ] = sdk_task
+    status = provider.get_export_status(
+        EarthEngineExportTaskReference(
+            task_id="task-456"
+        )
+    )
+    assert (
+        status.state
+        is EarthEngineTaskState.FAILED
+    )
+    assert status.error_message == (
+        "Export exceeded pixel limit."
+    )
+    assert status.is_terminal is True
+    assert status.succeeded is False
+
+
+def test_sdk_provider_rejects_unknown_export_task_reference() -> None:
+    sdk = FakeEarthEngineSdk()
+
+    provider = EarthEngineSdkProvider(
+        sdk=sdk
+    )
+
+    with pytest.raises(
+        EarthEngineRequestError,
+        match=(
+            "export task status "
+            "could not be retrieved"
+        ),
+    ):
+        provider.get_export_status(
+            EarthEngineExportTaskReference(
+                task_id="missing-task"
+            )
         )
