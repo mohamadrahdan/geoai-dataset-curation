@@ -41,6 +41,45 @@ def _apply_sentinel2_cloud_mask(
     )
     return image.updateMask(clear_mask)
 
+def _build_drive_export_parameters(
+    *,
+    sdk: Any,
+    image: Any,
+    request: EarthEngineExportRequest,
+) -> dict[str, Any]:
+    "Translate one exact-grid export request to Earth Engine parameters"
+    transform = request.grid.transform
+    if transform is None:
+        raise ValueError(
+            "Earth Engine export requires an exact raster transform."
+        )
+
+    left = transform.c
+    top = transform.f
+    right = left + request.grid.width * transform.a
+    bottom = top + request.grid.height * transform.e
+    region = sdk.Geometry.Rectangle(
+        [
+            left,
+            bottom,
+            right,
+            top,
+        ],
+        request.grid.crs,
+        False,
+    )
+    return {
+        "image": image,
+        "description": request.output_name,
+        "folder": request.destination_folder,
+        "fileNamePrefix": request.output_name,
+        "region": region,
+        "crs": request.grid.crs,
+        "crsTransform": list(
+            transform.as_tuple
+        ),
+        "fileFormat": "GeoTIFF",
+    }
 
 class EarthEngineSdkProvider:
     "Execute Earth Engine provider operations through the Python SDK"
