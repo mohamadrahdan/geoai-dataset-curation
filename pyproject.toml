@@ -19,6 +19,7 @@ dependencies = [
   "GeoPandas>=1.0",
   "earthengine-api>=1.7.36",
   "requests>=2.32",
+  "google-api-python-client>=2.0",
 ]
 
 [project.optional-dependencies]
