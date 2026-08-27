@@ -1,15 +1,30 @@
 import pytest
 from pathlib import Path
 from affine import Affine
+from geoai_dataset_curation.image_construction.raster_artifact_inspection import (
+    RasterArtifactMetadata,
+)
+from datetime import date
+from geoai_dataset_curation.image_construction.cloud_mask import (
+    Sentinel2CloudMaskSpec,
+)
+from geoai_dataset_curation.image_construction.earth_engine_provider import (
+    EarthEngineAggregationMethod,
+    EarthEngineCompositeRequest,
+)
+from geoai_dataset_curation.scene_preparation.contracts import (
+    SceneCandidate,
+    ScenePreparationResult,
+)
 from geoai_dataset_curation.image_construction.real_image_manifest import (
     REAL_IMAGE_MANIFEST_SCHEMA_VERSION,
     RealImageArtifactMetadata,
+    RealImageCompositeProvenance,
     RealImageManifest,
+    RealImageSceneProvenance,
     create_real_image_artifact_metadata,
+    create_real_image_composite_provenance,
     create_real_image_manifest,
-)
-from geoai_dataset_curation.image_construction.raster_artifact_inspection import (
-    RasterArtifactMetadata,
 )
 
 
@@ -148,4 +163,173 @@ def test_create_real_image_artifact_metadata_rejects_empty_artifact(
     ):
         create_real_image_artifact_metadata(
             inspected
+        )
+
+
+def test_create_real_image_composite_provenance_preserves_processing_history() -> None:
+    scene_1 = SceneCandidate(
+        scene_id="scene-1",
+        acquisition_date=date(
+            2024,
+            5,
+            10,
+        ),
+        cloud_cover=4.5,
+        collection="COPERNICUS/S2_SR_HARMONIZED",
+        available_bands=(
+            "B2",
+            "B3",
+            "B4",
+            "B8",
+            "SCL",
+        ),
+    )
+    scene_2 = SceneCandidate(
+        scene_id="scene-2",
+        acquisition_date=date(
+            2024,
+            5,
+            20,
+        ),
+        cloud_cover=7.0,
+        collection="COPERNICUS/S2_SR_HARMONIZED",
+        available_bands=(
+            "B2",
+            "B3",
+            "B4",
+            "B8",
+            "SCL",
+        ),
+    )
+    preparation = ScenePreparationResult(
+        source_id="padena_aoi",
+        candidate_count=2,
+        selected_count=2,
+        rejected_count=0,
+        selected_scenes=(
+            scene_1,
+            scene_2,
+        ),
+    )
+    request = EarthEngineCompositeRequest(
+        scene_ids=(
+            "scene-1",
+            "scene-2",
+        ),
+        bands=(
+            "B2",
+            "B3",
+            "B4",
+            "B8",
+        ),
+        cloud_mask=Sentinel2CloudMaskSpec(),
+        aggregation_method=(
+            EarthEngineAggregationMethod.MEDIAN
+        ),
+    )
+    provenance = create_real_image_composite_provenance(
+        scene_preparation=preparation,
+        composite_request=request,
+    )
+    assert isinstance(
+        provenance,
+        RealImageCompositeProvenance,
+    )
+    assert provenance.scenes == (
+        RealImageSceneProvenance(
+            scene_id="scene-1",
+            acquisition_date=date(
+                2024,
+                5,
+                10,
+            ),
+            cloud_cover=4.5,
+            collection=(
+                "COPERNICUS/S2_SR_HARMONIZED"
+            ),
+        ),
+        RealImageSceneProvenance(
+            scene_id="scene-2",
+            acquisition_date=date(
+                2024,
+                5,
+                20,
+            ),
+            cloud_cover=7.0,
+            collection=(
+                "COPERNICUS/S2_SR_HARMONIZED"
+            ),
+        ),
+    )
+
+    assert provenance.bands == (
+        "B2",
+        "B3",
+        "B4",
+        "B8",
+    )
+    assert provenance.aggregation_method == "median"
+    assert provenance.cloud_mask_band == "SCL"
+    assert (
+        provenance.excluded_cloud_mask_classes
+        == (
+            1,
+            3,
+            8,
+            9,
+            10,
+            11,
+        )
+    )
+
+
+def test_create_real_image_composite_provenance_rejects_scene_mismatch() -> None:
+    scene = SceneCandidate(
+        scene_id="scene-1",
+        acquisition_date=date(
+            2024,
+            5,
+            10,
+        ),
+        cloud_cover=4.5,
+        collection="COPERNICUS/S2_SR_HARMONIZED",
+        available_bands=(
+            "B2",
+            "B3",
+            "B4",
+            "B8",
+            "SCL",
+        ),
+    )
+    preparation = ScenePreparationResult(
+        source_id="padena_aoi",
+        candidate_count=1,
+        selected_count=1,
+        rejected_count=0,
+        selected_scenes=(
+            scene,
+        ),
+    )
+    request = EarthEngineCompositeRequest(
+        scene_ids=(
+            "different-scene",
+        ),
+        bands=(
+            "B2",
+            "B3",
+            "B4",
+            "B8",
+        ),
+        cloud_mask=Sentinel2CloudMaskSpec(),
+        aggregation_method=(
+            EarthEngineAggregationMethod.MEDIAN
+        ),
+    )
+    with pytest.raises(
+        ValueError,
+        match="must exactly match",
+    ):
+        create_real_image_composite_provenance(
+            scene_preparation=preparation,
+            composite_request=request,
         )

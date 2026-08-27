@@ -1,8 +1,15 @@
 "Contracts for persistent real-image manifests"
 from dataclasses import dataclass
 from pathlib import Path
+from datetime import date
 from geoai_dataset_curation.image_construction.raster_artifact_inspection import (
     RasterArtifactMetadata,
+)
+from geoai_dataset_curation.image_construction.earth_engine_provider import (
+    EarthEngineCompositeRequest,
+)
+from geoai_dataset_curation.scene_preparation.contracts import (
+    ScenePreparationResult,
 )
 
 REAL_IMAGE_MANIFEST_SCHEMA_VERSION = (
@@ -12,8 +19,7 @@ REAL_IMAGE_MANIFEST_SCHEMA_VERSION = (
 
 @dataclass(frozen=True)
 class RealImageArtifactMetadata:
-    """Persistent metadata snapshot for one real raster artifact."""
-
+    "Persistent metadata snapshot for one real raster artifact"
     file_size_bytes: int
     driver: str
     width: int
@@ -42,6 +48,25 @@ def create_real_image_artifact_metadata(
 
 
 @dataclass(frozen=True)
+class RealImageSceneProvenance:
+    "Traceable metadata for one Sentinel-2 source scene"
+    scene_id: str
+    acquisition_date: date
+    cloud_cover: float
+    collection: str
+
+
+@dataclass(frozen=True)
+class RealImageCompositeProvenance:
+    "Processing provenance for one Sentinel-2 composite"
+    scenes: tuple[RealImageSceneProvenance, ...]
+    bands: tuple[str, ...]
+    aggregation_method: str
+    cloud_mask_band: str
+    excluded_cloud_mask_classes: tuple[int, ...]
+
+
+@dataclass(frozen=True)
 class RealImageManifest:
     "Manifest for one constructed real-image artifact."
     schema_version: str
@@ -49,6 +74,7 @@ class RealImageManifest:
     output_name: str
     artifact_uri: str
     artifact: RealImageArtifactMetadata | None = None
+    provenance: RealImageCompositeProvenance | None = None
 
     @property
     def has_artifact(self) -> bool:
@@ -81,4 +107,48 @@ def create_real_image_manifest(
         source_id=source_id,
         output_name=output_name,
         artifact_uri=artifact_uri,
+    )
+
+
+def create_real_image_composite_provenance(
+    *,
+    scene_preparation: ScenePreparationResult,
+    composite_request: EarthEngineCompositeRequest,
+) -> RealImageCompositeProvenance:
+    "Create persistent provenance for one real Sentinel-2 composite"
+    selected_scene_ids = tuple(
+        scene.scene_id
+        for scene in scene_preparation.selected_scenes
+    )
+
+    if selected_scene_ids != composite_request.scene_ids:
+        raise ValueError(
+            "Composite scene_ids must exactly match "
+            "the prepared selected scenes."
+        )
+
+    scenes = tuple(
+        RealImageSceneProvenance(
+            scene_id=scene.scene_id,
+            acquisition_date=scene.acquisition_date,
+            cloud_cover=scene.cloud_cover,
+            collection=scene.collection,
+        )
+        for scene in scene_preparation.selected_scenes
+    )
+
+    return RealImageCompositeProvenance(
+        scenes=scenes,
+        bands=composite_request.bands,
+        aggregation_method=(
+            composite_request.aggregation_method.value
+        ),
+        cloud_mask_band=(
+            composite_request.cloud_mask.scl_band
+        ),
+        excluded_cloud_mask_classes=(
+            composite_request
+            .cloud_mask
+            .excluded_scl_classes
+        ),
     )
