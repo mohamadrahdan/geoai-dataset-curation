@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 from datetime import date
+from typing import Any
 from geoai_dataset_curation.image_construction.raster_artifact_inspection import (
     RasterArtifactMetadata,
 )
@@ -20,8 +21,6 @@ from geoai_dataset_curation.image_construction.grid_identity import (
 from geoai_dataset_curation.image_construction.validation import (
     validate_exact_raster_grid_spec,
 )
-from pathlib import Path
-
 from geoai_dataset_curation.image_construction.artifact_retrieval import (
     RetrievedRasterArtifact,
 )
@@ -252,3 +251,162 @@ def create_real_image_export_trace(
         remote_artifact_uri=(retrieved_artifact.source.uri),
         local_path=(retrieved_artifact.local_path),
     )
+
+
+def validate_real_image_manifest(
+    manifest: RealImageManifest,
+) -> tuple[str, ...]:
+    "Return consistency errors for one complete real-image manifest"
+    errors: list[str] = []
+
+    if (
+        manifest.schema_version
+        != REAL_IMAGE_MANIFEST_SCHEMA_VERSION
+    ):
+        errors.append("schema_version is not supported.")
+
+    if not manifest.source_id.strip():
+        errors.append("source_id must not be empty.")
+
+    if not manifest.output_name.strip():
+        errors.append("output_name must not be empty.")
+
+    if not manifest.artifact_uri.strip():
+        errors.append("artifact_uri must not be empty.")
+
+    if manifest.artifact is None:
+        errors.append("artifact metadata is required.")
+
+    if manifest.provenance is None:
+        errors.append(
+            "composite provenance is required."
+        )
+
+    if manifest.grid is None:
+        errors.append("grid metadata is required.")
+
+    if manifest.export_trace is None:
+        errors.append("export trace is required.")
+
+    if (
+        manifest.export_trace is not None
+        and manifest.artifact_uri
+        != manifest.export_trace.remote_artifact_uri
+    ):
+        errors.append(
+            "artifact_uri must match "
+            "export_trace.remote_artifact_uri."
+        )
+
+    if (
+        manifest.artifact is not None
+        and manifest.grid is not None
+    ):
+        if (
+            manifest.artifact.width
+            != manifest.grid.width
+        ):
+            errors.append(
+                "artifact width must match grid width."
+            )
+
+        if (
+            manifest.artifact.height
+            != manifest.grid.height
+        ):
+            errors.append(
+                "artifact height must match grid height."
+            )
+
+    if (
+        manifest.artifact is not None
+        and manifest.provenance is not None
+        and manifest.artifact.band_count
+        != len(manifest.provenance.bands)
+    ):
+        errors.append(
+            "artifact band_count must match "
+            "the composite band count."
+        )
+    return tuple(errors)
+
+
+def real_image_manifest_to_dict(
+    manifest: RealImageManifest,
+) -> dict[str, Any]:
+    "Serialize one complete real-image manifest"
+    errors = validate_real_image_manifest(
+        manifest
+    )
+
+    if errors:
+        raise ValueError(
+            "Cannot serialize invalid real-image manifest: "
+            + "; ".join(errors)
+        )
+    artifact = manifest.artifact
+    provenance = manifest.provenance
+    grid = manifest.grid
+    export_trace = manifest.export_trace
+
+    if (
+        artifact is None
+        or provenance is None
+        or grid is None
+        or export_trace is None
+    ):
+        raise RuntimeError("Validated real-image manifest is incomplete.")
+
+    return {
+        "schema_version": manifest.schema_version,
+        "source_id": manifest.source_id,
+        "output_name": manifest.output_name,
+        "artifact_uri": manifest.artifact_uri,
+        "artifact": {
+            "file_size_bytes": (
+                artifact.file_size_bytes
+            ),
+            "driver": artifact.driver,
+            "width": artifact.width,
+            "height": artifact.height,
+            "band_count": artifact.band_count,
+            "dtypes": list(
+                artifact.dtypes
+            ),
+        },
+        "provenance": {
+            "scenes": [
+                {
+                    "scene_id": scene.scene_id,
+                    "acquisition_date": (
+                        scene.acquisition_date.isoformat()
+                    ),
+                    "cloud_cover": scene.cloud_cover,
+                    "collection": scene.collection,
+                }
+                for scene in provenance.scenes
+            ],
+            "bands": list(provenance.bands),
+            "aggregation_method": (provenance.aggregation_method),
+            "cloud_mask_band": (provenance.cloud_mask_band),
+            "excluded_cloud_mask_classes": list(provenance.excluded_cloud_mask_classes),
+        },
+        "grid": {
+            "grid_id": grid.grid_id,
+            "crs": grid.crs,
+            "width": grid.width,
+            "height": grid.height,
+            "pixel_size_x": grid.pixel_size_x,
+            "pixel_size_y": grid.pixel_size_y,
+            "transform": list(
+                grid.transform
+            ),
+        },
+        "export_trace": {
+            "task_id": export_trace.task_id,
+            "destination": (export_trace.destination),
+            "destination_folder": (export_trace.destination_folder),
+            "remote_artifact_uri": (export_trace.remote_artifact_uri),
+            "local_path": str(export_trace.local_path),
+        },
+    }

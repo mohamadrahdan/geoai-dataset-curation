@@ -47,7 +47,10 @@ from geoai_dataset_curation.image_construction.real_image_manifest import (
     create_real_image_grid_metadata,
     RealImageExportTrace,
     create_real_image_export_trace,
+    real_image_manifest_to_dict,
+    validate_real_image_manifest,
 )
+from dataclasses import replace
 
 
 def test_create_real_image_manifest_preserves_identity() -> None:
@@ -537,4 +540,223 @@ def test_create_real_image_export_trace_rejects_empty_task_id(
                 task_id=" "
             ),
             retrieved_artifact=retrieved,
+        )
+
+
+def _complete_real_image_manifest(
+    tmp_path: Path,
+) -> RealImageManifest:
+    artifact = RealImageArtifactMetadata(
+        file_size_bytes=132380,
+        driver="GTiff",
+        width=97,
+        height=112,
+        band_count=4,
+        dtypes=(
+            "float64",
+            "float64",
+            "float64",
+            "float64",
+        ),
+    )
+
+    provenance = RealImageCompositeProvenance(
+        scenes=(
+            RealImageSceneProvenance(
+                scene_id="scene-1",
+                acquisition_date=date(
+                    2024,
+                    5,
+                    10,
+                ),
+                cloud_cover=4.5,
+                collection=(
+                    "COPERNICUS/S2_SR_HARMONIZED"
+                ),
+            ),
+        ),
+        bands=(
+            "B2",
+            "B3",
+            "B4",
+            "B8",
+        ),
+        aggregation_method="median",
+        cloud_mask_band="SCL",
+        excluded_cloud_mask_classes=(
+            1,
+            3,
+            8,
+            9,
+            10,
+            11,
+        ),
+    )
+
+    grid = RealImageGridMetadata(
+        grid_id="sha256:test-grid",
+        crs="EPSG:32639",
+        width=97,
+        height=112,
+        pixel_size_x=10.0,
+        pixel_size_y=10.0,
+        transform=(
+            10.0,
+            0.0,
+            547020.0,
+            0.0,
+            -10.0,
+            3374300.0,
+        ),
+    )
+
+    export_trace = RealImageExportTrace(
+        task_id="task-123",
+        destination="drive",
+        destination_folder="padena-images",
+        remote_artifact_uri=(
+            "drive://padena-images/"
+            "padena_sentinel2_image.tif"
+        ),
+        local_path=(
+            tmp_path
+            / "padena_sentinel2_image.tif"
+        ),
+    )
+
+    return RealImageManifest(
+        schema_version=(
+            REAL_IMAGE_MANIFEST_SCHEMA_VERSION
+        ),
+        source_id="padena_aoi",
+        output_name="padena_sentinel2_image",
+        artifact_uri=(
+            "drive://padena-images/"
+            "padena_sentinel2_image.tif"
+        ),
+        artifact=artifact,
+        provenance=provenance,
+        grid=grid,
+        export_trace=export_trace,
+    )
+
+
+def test_validate_real_image_manifest_accepts_consistent_manifest(
+    tmp_path: Path,
+) -> None:
+    manifest = _complete_real_image_manifest(
+        tmp_path
+    )
+    assert validate_real_image_manifest(
+        manifest
+    ) == ()
+
+
+def test_validate_real_image_manifest_detects_cross_component_mismatch(
+    tmp_path: Path,
+) -> None:
+    manifest = _complete_real_image_manifest(
+        tmp_path
+    )
+
+    assert manifest.artifact is not None
+    invalid_artifact = replace(
+        manifest.artifact,
+        width=98,
+        band_count=3,
+    )
+
+    invalid_manifest = replace(
+        manifest,
+        artifact=invalid_artifact,
+        artifact_uri=(
+            "drive://different/artifact.tif"
+        ),
+    )
+
+    errors = validate_real_image_manifest(
+        invalid_manifest
+    )
+
+    assert (
+        "artifact_uri must match "
+        "export_trace.remote_artifact_uri."
+        in errors
+    )
+    assert (
+        "artifact width must match grid width."
+        in errors
+    )
+    assert (
+        "artifact band_count must match "
+        "the composite band count."
+        in errors
+    )
+
+
+def test_real_image_manifest_to_dict_is_json_serializable(
+    tmp_path: Path,
+) -> None:
+    import json
+
+    manifest = _complete_real_image_manifest(
+        tmp_path
+    )
+    payload = real_image_manifest_to_dict(
+        manifest
+    )
+    assert payload["schema_version"] == (
+        REAL_IMAGE_MANIFEST_SCHEMA_VERSION
+    )
+    assert payload["artifact"]["dtypes"] == [
+        "float64",
+        "float64",
+        "float64",
+        "float64",
+    ]
+
+    assert (
+        payload["provenance"]["scenes"][0][
+            "acquisition_date"
+        ]
+        == "2024-05-10"
+    )
+
+    assert payload["grid"]["transform"] == [
+        10.0,
+        0.0,
+        547020.0,
+        0.0,
+        -10.0,
+        3374300.0,
+    ]
+
+    assert (
+        payload["export_trace"]["local_path"]
+        == str(
+            tmp_path
+            / "padena_sentinel2_image.tif"
+        )
+    )
+
+    json.dumps(
+        payload
+    )
+
+
+def test_real_image_manifest_to_dict_rejects_incomplete_manifest() -> None:
+    manifest = create_real_image_manifest(
+        source_id="padena_aoi",
+        output_name="padena_sentinel2_image",
+        artifact_uri=(
+            "drive://padena-images/"
+            "padena_sentinel2_image.tif"
+        ),
+    )
+    with pytest.raises(
+        ValueError,
+        match="Cannot serialize invalid real-image manifest",
+    ):
+        real_image_manifest_to_dict(
+            manifest
         )
