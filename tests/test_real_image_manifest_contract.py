@@ -16,6 +16,13 @@ from geoai_dataset_curation.scene_preparation.contracts import (
     SceneCandidate,
     ScenePreparationResult,
 )
+from geoai_dataset_curation.image_construction.contracts import (
+    AffineTransformSpec,
+    RasterGridSpec,
+)
+from geoai_dataset_curation.image_construction.grid_identity import (
+    build_raster_grid_id,
+)
 from geoai_dataset_curation.image_construction.real_image_manifest import (
     REAL_IMAGE_MANIFEST_SCHEMA_VERSION,
     RealImageArtifactMetadata,
@@ -25,6 +32,8 @@ from geoai_dataset_curation.image_construction.real_image_manifest import (
     create_real_image_artifact_metadata,
     create_real_image_composite_provenance,
     create_real_image_manifest,
+    RealImageGridMetadata,
+    create_real_image_grid_metadata,
 )
 
 
@@ -332,4 +341,61 @@ def test_create_real_image_composite_provenance_rejects_scene_mismatch() -> None
         create_real_image_composite_provenance(
             scene_preparation=preparation,
             composite_request=request,
+        )
+
+
+def test_create_real_image_grid_metadata_preserves_exact_grid() -> None:
+    grid = RasterGridSpec(
+        crs="EPSG:32639",
+        width=97,
+        height=112,
+        pixel_size_x=10.0,
+        pixel_size_y=10.0,
+        transform=AffineTransformSpec(
+            a=10.0,
+            b=0.0,
+            c=547020.0,
+            d=0.0,
+            e=-10.0,
+            f=3374300.0,
+        ),
+    )
+
+    metadata = create_real_image_grid_metadata(grid)
+
+    assert isinstance(
+        metadata,
+        RealImageGridMetadata,
+    )
+    assert metadata.grid_id == build_raster_grid_id(grid)
+    assert metadata.crs == "EPSG:32639"
+    assert metadata.width == 97
+    assert metadata.height == 112
+    assert metadata.pixel_size_x == 10.0
+    assert metadata.pixel_size_y == 10.0
+    assert metadata.transform == (
+        10.0,
+        0.0,
+        547020.0,
+        0.0,
+        -10.0,
+        3374300.0,
+    )
+
+
+def test_create_real_image_grid_metadata_rejects_non_exact_grid() -> None:
+    grid = RasterGridSpec(
+        crs="EPSG:32639",
+        width=97,
+        height=112,
+        pixel_size_x=10.0,
+        pixel_size_y=10.0,
+        transform=None,
+    )
+    with pytest.raises(
+        ValueError,
+        match="Cannot create real-image grid metadata",
+    ):
+        create_real_image_grid_metadata(
+            grid
         )

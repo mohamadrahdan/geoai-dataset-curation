@@ -11,6 +11,15 @@ from geoai_dataset_curation.image_construction.earth_engine_provider import (
 from geoai_dataset_curation.scene_preparation.contracts import (
     ScenePreparationResult,
 )
+from geoai_dataset_curation.image_construction.contracts import (
+    RasterGridSpec,
+)
+from geoai_dataset_curation.image_construction.grid_identity import (
+    build_raster_grid_id,
+)
+from geoai_dataset_curation.image_construction.validation import (
+    validate_exact_raster_grid_spec,
+)
 
 REAL_IMAGE_MANIFEST_SCHEMA_VERSION = (
     "real-image-manifest-v1"
@@ -67,6 +76,25 @@ class RealImageCompositeProvenance:
 
 
 @dataclass(frozen=True)
+class RealImageGridMetadata:
+    "Persistent snapshot of one approved exact raster grid"
+    grid_id: str
+    crs: str
+    width: int
+    height: int
+    pixel_size_x: float
+    pixel_size_y: float
+    transform: tuple[
+        float,
+        float,
+        float,
+        float,
+        float,
+        float,
+    ]
+
+
+@dataclass(frozen=True)
 class RealImageManifest:
     "Manifest for one constructed real-image artifact."
     schema_version: str
@@ -75,6 +103,7 @@ class RealImageManifest:
     artifact_uri: str
     artifact: RealImageArtifactMetadata | None = None
     provenance: RealImageCompositeProvenance | None = None
+    grid: RealImageGridMetadata | None = None
 
     @property
     def has_artifact(self) -> bool:
@@ -151,4 +180,32 @@ def create_real_image_composite_provenance(
             .cloud_mask
             .excluded_scl_classes
         ),
+    )
+
+
+def create_real_image_grid_metadata(
+    grid: RasterGridSpec,
+) -> RealImageGridMetadata:
+    "Create persistent metadata from one approved exact raster grid"
+    errors = validate_exact_raster_grid_spec(
+        grid
+    )
+    if errors:
+        raise ValueError(
+            "Cannot create real-image grid metadata: "
+            + "; ".join(errors)
+        )
+    transform = grid.transform
+    if transform is None:
+        raise ValueError(
+            "Exact raster grid requires an affine transform."
+        )
+    return RealImageGridMetadata(
+        grid_id=build_raster_grid_id(grid),
+        crs=grid.crs,
+        width=grid.width,
+        height=grid.height,
+        pixel_size_x=grid.pixel_size_x,
+        pixel_size_y=grid.pixel_size_y,
+        transform=transform.as_tuple,
     )
