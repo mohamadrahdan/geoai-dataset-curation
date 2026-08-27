@@ -410,3 +410,67 @@ def real_image_manifest_to_dict(
             "local_path": str(export_trace.local_path),
         },
     }
+
+
+def create_complete_real_image_manifest(
+    *,
+    scene_preparation: ScenePreparationResult,
+    composite_request: EarthEngineCompositeRequest,
+    export_request: EarthEngineExportRequest,
+    export_task: EarthEngineExportTaskReference,
+    retrieved_artifact: RetrievedRasterArtifact,
+    inspected_metadata: RasterArtifactMetadata,
+    approved_grid: RasterGridSpec,
+) -> RealImageManifest:
+    "Assemble one complete validated real-image manifest"
+    if (scene_preparation.source_id.strip() == ""):
+        raise ValueError("scene preparation source_id must not be empty.")
+
+    if (export_request.image.image_id.strip() == ""):
+        raise ValueError("export image reference must not be empty.")
+
+    if (retrieved_artifact.local_path != inspected_metadata.path):
+        raise ValueError(
+            "Inspected raster path must match "
+            "the retrieved artifact path."
+        )
+
+    artifact = create_real_image_artifact_metadata(inspected_metadata)
+
+    provenance = create_real_image_composite_provenance(
+        scene_preparation=scene_preparation,
+        composite_request=composite_request,
+    )
+
+    grid = create_real_image_grid_metadata(approved_grid)
+
+    export_trace = create_real_image_export_trace(
+        export_request=export_request,
+        export_task=export_task,
+        retrieved_artifact=retrieved_artifact,
+    )
+
+    manifest = RealImageManifest(
+        schema_version=(
+            REAL_IMAGE_MANIFEST_SCHEMA_VERSION
+        ),
+        source_id=scene_preparation.source_id,
+        output_name=export_request.output_name,
+        artifact_uri=(
+            retrieved_artifact.source.uri
+        ),
+        artifact=artifact,
+        provenance=provenance,
+        grid=grid,
+        export_trace=export_trace,
+    )
+    errors = validate_real_image_manifest(
+        manifest
+    )
+    if errors:
+        raise ValueError(
+            "Cannot assemble real-image manifest: "
+            + "; ".join(errors)
+        )
+
+    return manifest
