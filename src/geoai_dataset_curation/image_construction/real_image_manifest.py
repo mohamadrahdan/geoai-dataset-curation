@@ -20,6 +20,16 @@ from geoai_dataset_curation.image_construction.grid_identity import (
 from geoai_dataset_curation.image_construction.validation import (
     validate_exact_raster_grid_spec,
 )
+from pathlib import Path
+
+from geoai_dataset_curation.image_construction.artifact_retrieval import (
+    RetrievedRasterArtifact,
+)
+from geoai_dataset_curation.image_construction.earth_engine_provider import (
+    EarthEngineExportDestination,
+    EarthEngineExportRequest,
+    EarthEngineExportTaskReference,
+)
 
 REAL_IMAGE_MANIFEST_SCHEMA_VERSION = (
     "real-image-manifest-v1"
@@ -42,6 +52,7 @@ def create_real_image_artifact_metadata(
 ) -> RealImageArtifactMetadata:
     "Create persistent artifact metadata from an inspected raster"
     file_size_bytes = metadata.path.stat().st_size
+
     if file_size_bytes <= 0:
         raise ValueError(
             "Raster artifact must not be empty."
@@ -95,6 +106,16 @@ class RealImageGridMetadata:
 
 
 @dataclass(frozen=True)
+class RealImageExportTrace:
+    "Traceability metadata for one exported and retrieved raster artifact."
+    task_id: str
+    destination: str
+    destination_folder: str
+    remote_artifact_uri: str
+    local_path: Path
+
+
+@dataclass(frozen=True)
 class RealImageManifest:
     "Manifest for one constructed real-image artifact."
     schema_version: str
@@ -104,6 +125,7 @@ class RealImageManifest:
     artifact: RealImageArtifactMetadata | None = None
     provenance: RealImageCompositeProvenance | None = None
     grid: RealImageGridMetadata | None = None
+    export_trace: RealImageExportTrace | None = None
 
     @property
     def has_artifact(self) -> bool:
@@ -208,4 +230,25 @@ def create_real_image_grid_metadata(
         pixel_size_x=grid.pixel_size_x,
         pixel_size_y=grid.pixel_size_y,
         transform=transform.as_tuple,
+    )
+
+
+def create_real_image_export_trace(
+    *,
+    export_request: EarthEngineExportRequest,
+    export_task: EarthEngineExportTaskReference,
+    retrieved_artifact: RetrievedRasterArtifact,
+) -> RealImageExportTrace:
+    "Create traceability metadata for one export and retrieval path"
+    if not export_task.task_id.strip():
+        raise ValueError("export task_id must not be empty.")
+    if not retrieved_artifact.source.uri.strip():
+        raise ValueError("remote artifact URI must not be empty.")
+
+    return RealImageExportTrace(
+        task_id=export_task.task_id,
+        destination=export_request.destination.value,
+        destination_folder=(export_request.destination_folder),
+        remote_artifact_uri=(retrieved_artifact.source.uri),
+        local_path=(retrieved_artifact.local_path),
     )
