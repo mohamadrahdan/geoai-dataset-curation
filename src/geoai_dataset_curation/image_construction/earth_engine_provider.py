@@ -2,13 +2,10 @@
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol, runtime_checkable
-from geoai_dataset_curation.image_construction.contracts import (
-    RasterGridSpec,
-)
-from geoai_dataset_curation.image_construction.cloud_mask import (
-    Sentinel2CloudMaskSpec,
-)
+from geoai_dataset_curation.image_construction.contracts import (RasterGridSpec,)
+from geoai_dataset_curation.image_construction.cloud_mask import (Sentinel2CloudMaskSpec,)
 from enum import StrEnum
+
 
 @dataclass(frozen=True)
 class EarthEngineSceneQuery:
