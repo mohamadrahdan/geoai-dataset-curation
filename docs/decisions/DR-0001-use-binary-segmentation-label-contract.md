@@ -4,6 +4,14 @@
 
 Accepted
 
+## Superseded Interpretation
+
+The binary segmentation objective remains active, but the original interpretation of all background as negative supervision has been refined by:
+
+`DR-0008: Separate Supervision Semantics from Training Targets`
+
+Unannotated pixels must no longer be assumed to be negative training evidence.
+
 ## Context
 
 Loop 1 requires a clear and stable label definition before source validation, rasterization, tiling, training, and evaluation can begin.

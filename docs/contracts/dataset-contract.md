@@ -25,9 +25,21 @@ The model must predict(vorhersagen) whether each valid pixel belongs to a landsl
 The initial label values are(sind):
 
 ```text
-0   = background / non-landslide
-1   = landslide
-255 = ignore / uncertain
+0   = explicit negative training target
+1   = positive landslide target
+255 = ignore
+```
+
+Unannotated pixels are not automatically treated as negative evidence.
+
+The supervision source remains distinct from the numeric training target:
+
+```text
+positive reference      -> 1
+reviewed negative       -> 0
+hard negative           -> 0
+unlabeled               -> 255
+nodata                  -> 255
 ```
 
 Label value `255` is excluded(wird ausgeschlossen) from loss calculation and official metric calculation.
