@@ -164,3 +164,17 @@ def test_request_requires_exact_grid() -> None:
         "transform" in error
         for error in errors
     )
+
+
+def test_request_accepts_loop1_rasterization_policy() -> None:
+    source = LabelVectorSource(
+        source_id="positive-reference",
+        supervision=SupervisionKind.POSITIVE_REFERENCE,
+        geometries=(make_polygon(),),
+    )
+    request = LabelRasterizationRequest(
+        sources=(source,),
+        grid=make_grid(),
+        output_name="label-raster",
+    )
+    assert validate_label_rasterization_request(request) == ()
