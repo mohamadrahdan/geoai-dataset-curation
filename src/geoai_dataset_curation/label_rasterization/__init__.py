@@ -1,4 +1,4 @@
-"Label-rasterization contracts and validation"
+"Label-rasterization contracts, validation, execution, and runtime wiring"
 from geoai_dataset_curation.label_rasterization.artifact_contract import (
     LOOP1_LABEL_ALLOWED_VALUES,
     LabelRasterArtifactSpec,
@@ -11,9 +11,16 @@ from geoai_dataset_curation.label_rasterization.artifact_verification import (
     LabelRasterVerificationResult,
     verify_label_raster_artifact,
 )
+from geoai_dataset_curation.label_rasterization.artifact_writer import (
+    write_label_raster_artifact,
+)
 from geoai_dataset_curation.label_rasterization.contracts import (
     LabelRasterizationRequest,
     LabelVectorSource,
+)
+from geoai_dataset_curation.label_rasterization.geometry_repair import (
+    GeometryRepairSummary,
+    repair_invalid_reference_geometries,
 )
 from geoai_dataset_curation.label_rasterization.policy import (
     LOOP1_RASTERIZATION_POLICY,
@@ -25,9 +32,9 @@ from geoai_dataset_curation.label_rasterization.policy import (
 from geoai_dataset_curation.label_rasterization.policy_validation import (
     validate_label_rasterization_policy,
 )
-from geoai_dataset_curation.label_rasterization.validation import (
-    validate_label_rasterization_request,
-    validate_label_vector_source,
+from geoai_dataset_curation.label_rasterization.rasterizer import (
+    LabelRasterizationResult,
+    rasterize_label_request,
 )
 from geoai_dataset_curation.label_rasterization.real_reference_env import (
     HARD_NEGATIVE_REFERENCE_PATH_ENV,
@@ -41,36 +48,40 @@ from geoai_dataset_curation.label_rasterization.real_reference_wiring import (
     wire_real_reference_source,
     wire_real_reference_sources,
 )
-from geoai_dataset_curation.label_rasterization.geometry_repair import (
-    GeometryRepairSummary,
-    repair_invalid_reference_geometries,
+from geoai_dataset_curation.label_rasterization.validation import (
+    validate_label_rasterization_request,
+    validate_label_vector_source,
 )
 
+
 __all__ = [
+    "GeometryRepairSummary",
+    "HARD_NEGATIVE_REFERENCE_PATH_ENV",
     "LOOP1_LABEL_ALLOWED_VALUES",
     "LOOP1_RASTERIZATION_POLICY",
     "LabelRasterArtifactSpec",
     "LabelRasterVerificationResult",
     "LabelRasterizationPolicy",
     "LabelRasterizationRequest",
+    "LabelRasterizationResult",
     "LabelVectorSource",
+    "NEGATIVE_REFERENCE_PATH_ENV",
     "OutOfGridRule",
     "OverlapRule",
+    "POSITIVE_REFERENCE_PATH_ENV",
     "PixelInclusionRule",
+    "RealReferenceSourceConfig",
+    "WiredReferenceSource",
     "create_label_raster_artifact_spec",
+    "load_real_reference_source_configs",
+    "rasterize_label_request",
+    "repair_invalid_reference_geometries",
     "validate_label_raster_artifact_spec",
     "validate_label_rasterization_policy",
     "validate_label_rasterization_request",
     "validate_label_vector_source",
     "verify_label_raster_artifact",
-    "HARD_NEGATIVE_REFERENCE_PATH_ENV",
-    "NEGATIVE_REFERENCE_PATH_ENV",
-    "POSITIVE_REFERENCE_PATH_ENV",
-    "RealReferenceSourceConfig",
-    "WiredReferenceSource",
-    "load_real_reference_source_configs",
     "wire_real_reference_source",
     "wire_real_reference_sources",
-    "GeometryRepairSummary",
-    "repair_invalid_reference_geometries",
+    "write_label_raster_artifact",
 ]
