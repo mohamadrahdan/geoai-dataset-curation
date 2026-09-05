@@ -71,6 +71,13 @@ from geoai_dataset_curation.label_rasterization.spatial_qc import (
     compute_source_overlap_pixel_count,
     validate_no_disjoint_geometries,
 )
+from geoai_dataset_curation.label_rasterization.manifest import (
+    LabelPixelStatisticsManifest,
+    LabelRasterManifest,
+    LabelSourceManifest,
+    label_raster_manifest_to_dict,
+    write_label_raster_manifest,
+)
 
 
 __all__ = [
@@ -111,4 +118,9 @@ __all__ = [
     "compute_label_pixel_statistics",
     "validate_no_disjoint_geometries",
     "compute_source_overlap_pixel_count",
+    "LabelPixelStatisticsManifest",
+    "LabelRasterManifest",
+    "LabelSourceManifest",
+    "label_raster_manifest_to_dict",
+    "write_label_raster_manifest",
 ]
