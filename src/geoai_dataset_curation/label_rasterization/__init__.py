@@ -52,6 +52,10 @@ from geoai_dataset_curation.label_rasterization.validation import (
     validate_label_rasterization_request,
     validate_label_vector_source,
 )
+from geoai_dataset_curation.label_rasterization.alignment import (
+    RasterPairAlignmentResult,
+    verify_raster_pair_alignment,
+)
 
 
 __all__ = [
@@ -84,4 +88,6 @@ __all__ = [
     "wire_real_reference_source",
     "wire_real_reference_sources",
     "write_label_raster_artifact",
+    "RasterPairAlignmentResult",
+    "verify_raster_pair_alignment",
 ]
