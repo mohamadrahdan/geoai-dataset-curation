@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from shapely.geometry import Polygon
-
 from geoai_dataset_curation.contracts import (
     LabelValue,
     SupervisionKind,
@@ -15,6 +14,7 @@ from geoai_dataset_curation.label_rasterization import (
     LabelVectorSource,
     rasterize_label_request,
 )
+from shapely.geometry import box
 
 
 def make_grid() -> RasterGridSpec:
@@ -183,3 +183,23 @@ def test_same_target_overlap_is_allowed() -> None:
         )
     )
     assert result.data[0, 0] == int(LabelValue.NEGATIVE)
+
+
+def test_rasterizer_rejects_fully_outside_geometry() -> None:
+    source = LabelVectorSource(
+        source_id="positive-reference",
+        supervision=SupervisionKind.POSITIVE_REFERENCE,
+        geometries=(
+            box(100.0, 100.0, 110.0, 110.0),
+        ),
+    )
+    request = LabelRasterizationRequest(
+        sources=(source,),
+        grid=make_grid(),
+        output_name="labels",
+    )
+    with pytest.raises(
+        ValueError,
+        match="fully outside the target grid",
+    ):
+        rasterize_label_request(request)

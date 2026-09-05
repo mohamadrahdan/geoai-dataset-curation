@@ -56,6 +56,21 @@ from geoai_dataset_curation.label_rasterization.alignment import (
     RasterPairAlignmentResult,
     verify_raster_pair_alignment,
 )
+from geoai_dataset_curation.label_rasterization.spatial_qc import (
+    SourceSpatialQC,
+    analyze_source_spatial_qc,
+    validate_no_disjoint_geometries,
+)
+from geoai_dataset_curation.label_rasterization.statistics import (
+    LabelPixelStatistics,
+    compute_label_pixel_statistics,
+)
+from geoai_dataset_curation.label_rasterization.spatial_qc import (
+    SourceSpatialQC,
+    analyze_source_spatial_qc,
+    compute_source_overlap_pixel_count,
+    validate_no_disjoint_geometries,
+)
 
 
 __all__ = [
@@ -90,4 +105,10 @@ __all__ = [
     "write_label_raster_artifact",
     "RasterPairAlignmentResult",
     "verify_raster_pair_alignment",
+    "LabelPixelStatistics",
+    "SourceSpatialQC",
+    "analyze_source_spatial_qc",
+    "compute_label_pixel_statistics",
+    "validate_no_disjoint_geometries",
+    "compute_source_overlap_pixel_count",
 ]
