@@ -16,6 +16,9 @@ from geoai_dataset_curation.label_rasterization.validation import (
     validate_label_rasterization_request,
 )
 from typing import cast
+from geoai_dataset_curation.label_rasterization.spatial_qc import (
+    validate_no_disjoint_geometries,
+)
 
 
 @dataclass(frozen=True)
@@ -92,7 +95,13 @@ def rasterize_label_request(
         dtype=bool,
     )
     burned_feature_count = 0
+
     for source in request.sources:
+        validate_no_disjoint_geometries(
+            source,
+            request.grid,
+        )
+
         source_mask = _rasterize_source_mask(
             source=source,
             request=request,
