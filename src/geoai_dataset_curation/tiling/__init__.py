@@ -21,6 +21,9 @@ from geoai_dataset_curation.tiling.identity import (
     tile_layout_identity_payload,
     tile_window_identity_payload,
 )
+from geoai_dataset_curation.tiling.window_generation import (
+    generate_tile_windows,
+)
 
 __all__ = [
     "TileEdgePolicy",
@@ -35,4 +38,5 @@ __all__ = [
     "validate_tile_window",
     "validate_tiling_request",
     "validate_tile_window_identity",
+    "generate_tile_windows",
 ]
