@@ -25,3 +25,4 @@ Each decision record documents:
 - [DR-0010: Define the Loop 1 Label Rasterization Policy](DR-0010-define-loop1-label-rasterization-policy.md)
 - [DR-0011: Define the Label Artifact and Verification Contract](DR-0011-define-label-artifact-and-verification-contract.md)
 - [DR-0012: Define a Deterministic Tiling Contract Boundary](DR-0012-define-deterministic-tiling-contract-boundary.md)
+- [DR-0013: Select the Loop 1 Tiling Policy](DR-0013-select-loop1-tiling-policy.md)
