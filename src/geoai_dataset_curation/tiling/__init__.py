@@ -3,6 +3,14 @@ from geoai_dataset_curation.tiling.analysis import (
     TileLayoutAnalysis,
     analyze_tile_layout,
 )
+from geoai_dataset_curation.tiling.catalog import (
+    TILE_CATALOG_SCHEMA_VERSION,
+    TileCandidateRecord,
+    TileCatalog,
+    TileLabelClass,
+    validate_tile_candidate_record,
+    validate_tile_catalog,
+)
 from geoai_dataset_curation.tiling.contracts import (
     TileEdgePolicy,
     TileLayoutSpec,
@@ -34,7 +42,11 @@ from geoai_dataset_curation.tiling.window_generation import (
 
 __all__ = [
     "LOOP1_TILING_LAYOUT",
+    "TILE_CATALOG_SCHEMA_VERSION",
+    "TileCandidateRecord",
+    "TileCatalog",
     "TileEdgePolicy",
+    "TileLabelClass",
     "TileLabelAnalysis",
     "TileLayoutAnalysis",
     "TileLayoutSpec",
@@ -47,6 +59,8 @@ __all__ = [
     "generate_tile_windows",
     "tile_layout_identity_payload",
     "tile_window_identity_payload",
+    "validate_tile_candidate_record",
+    "validate_tile_catalog",
     "validate_tile_layout",
     "validate_tile_window",
     "validate_tile_window_identity",
