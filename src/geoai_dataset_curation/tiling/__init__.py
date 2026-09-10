@@ -1,4 +1,5 @@
 "Deterministic tiling contracts and operations"
+
 from geoai_dataset_curation.tiling.analysis import (
     TileLayoutAnalysis,
     analyze_tile_layout,
@@ -12,6 +13,17 @@ from geoai_dataset_curation.tiling.catalog import (
     validate_tile_catalog,
 )
 from geoai_dataset_curation.tiling.catalog_generation import build_tile_catalog
+from geoai_dataset_curation.tiling.catalog_identity import (
+    build_tile_catalog_id,
+    tile_candidate_identity_payload,
+    tile_catalog_identity_payload,
+)
+from geoai_dataset_curation.tiling.catalog_io import (
+    tile_candidate_record_to_dict,
+    tile_catalog_to_dict,
+    verify_tile_catalog_artifact,
+    write_tile_catalog,
+)
 from geoai_dataset_curation.tiling.contracts import (
     TileEdgePolicy,
     TileLayoutSpec,
@@ -53,9 +65,14 @@ __all__ = [
     "analyze_label_tiles",
     "analyze_tile_layout",
     "build_tile_catalog",
+    "build_tile_catalog_id",
     "build_tile_layout_id",
     "build_tile_window_id",
     "generate_tile_windows",
+    "tile_candidate_identity_payload",
+    "tile_candidate_record_to_dict",
+    "tile_catalog_identity_payload",
+    "tile_catalog_to_dict",
     "tile_layout_identity_payload",
     "tile_window_identity_payload",
     "validate_label_array",
@@ -65,4 +82,6 @@ __all__ = [
     "validate_tile_window",
     "validate_tile_window_identity",
     "validate_tiling_request",
+    "verify_tile_catalog_artifact",
+    "write_tile_catalog",
 ]
