@@ -69,7 +69,7 @@ class TileLabelAnalysis:
         )
 
 
-def _validate_label_array(
+def validate_label_array(
     labels: np.ndarray,
     request: TilingRequest,
 ) -> None:
@@ -109,7 +109,7 @@ def analyze_label_tiles(
     request: TilingRequest,
 ) -> TileLabelAnalysis:
     "Measure supervision distribution across candidate windows"
-    _validate_label_array(
+    validate_label_array(
         labels,
         request,
     )
