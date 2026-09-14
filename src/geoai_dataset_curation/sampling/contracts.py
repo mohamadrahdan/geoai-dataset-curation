@@ -1,7 +1,10 @@
 "Contracts for deterministic candidate-tile sampling"
 from dataclasses import dataclass
 from enum import StrEnum
-from geoai_dataset_curation.tiling.catalog import TileLabelClass
+from geoai_dataset_curation.tiling.catalog import (
+    TileCandidateRecord,
+    TileLabelClass,
+)
 
 
 class SamplingEligibilityStatus(StrEnum):
@@ -47,3 +50,38 @@ class TileSamplingEligibility:
     def is_eligible(self) -> bool:
         "Return whether the candidate may enter supervised sampling"
         return self.status == SamplingEligibilityStatus.ELIGIBLE
+
+
+@dataclass(frozen=True)
+class TileSamplingSelection:
+    "Auditable result of selecting supervised candidate tiles"
+    catalog_id: str
+    selected_candidates: tuple[TileCandidateRecord, ...]
+    excluded_tile_ids: tuple[str, ...]
+
+    @property
+    def selected_tile_count(self) -> int:
+        "Return the number of selected supervised candidates"
+        return len(self.selected_candidates)
+
+    @property
+    def selected_positive_tile_count(self) -> int:
+        "Return the number of selected positive candidates"
+        return sum(
+            candidate.label_class == TileLabelClass.POSITIVE
+            for candidate in self.selected_candidates
+        )
+
+    @property
+    def selected_negative_only_tile_count(self) -> int:
+        "Return the number of selected negative-only candidates"
+        return sum(
+            candidate.label_class
+            == TileLabelClass.NEGATIVE_ONLY
+            for candidate in self.selected_candidates
+        )
+
+    @property
+    def excluded_tile_count(self) -> int:
+        "Return the number of candidates excluded from sampling"
+        return len(self.excluded_tile_ids)
