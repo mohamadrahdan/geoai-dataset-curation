@@ -37,6 +37,10 @@ from geoai_dataset_curation.sampling.validation import (
 from geoai_dataset_curation.sampling.provenance import (
     build_tile_negative_provenance_catalog,
 )
+from geoai_dataset_curation.sampling.negative_source_masks import (
+    NEGATIVE_SOURCE_KINDS,
+    rasterize_negative_source_mask,
+)
 
 
 __all__ = [
@@ -60,4 +64,6 @@ __all__ = [
     "validate_tile_sampling_eligibility",
     "validate_tile_sampling_selection",
     "build_tile_negative_provenance_catalog",
+    "NEGATIVE_SOURCE_KINDS",
+    "rasterize_negative_source_mask",
 ]
