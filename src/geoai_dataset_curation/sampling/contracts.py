@@ -29,6 +29,14 @@ class HardNegativeHandling(StrEnum):
     REQUIRE_SOURCE_PROVENANCE = "require_source_provenance"
 
 
+class NegativeProvenanceKind(StrEnum):
+    "Source-derived negative evidence present in one tile"
+    NONE = "none"
+    ORDINARY_NEGATIVE = "ordinary_negative"
+    HARD_NEGATIVE = "hard_negative"
+    MIXED_NEGATIVE = "mixed_negative"
+
+
 @dataclass(frozen=True)
 class SamplingPolicy:
     "Policy governing supervised candidate-tile selection"
@@ -85,3 +93,61 @@ class TileSamplingSelection:
     def excluded_tile_count(self) -> int:
         "Return the number of candidates excluded from sampling"
         return len(self.excluded_tile_ids)
+
+
+TILE_NEGATIVE_PROVENANCE_SCHEMA_VERSION = ("tile-negative-provenance-v1")
+@dataclass(frozen=True)
+class TileNegativeProvenance:
+    "Source-specific negative evidence measured for one tile"
+    tile_id: str
+    ordinary_negative_pixel_count: int
+    hard_negative_pixel_count: int
+    shared_negative_pixel_count: int
+
+    @property
+    def union_negative_pixel_count(self) -> int:
+        "Return unique pixels covered by either negative source"
+        return (
+            self.ordinary_negative_pixel_count
+            + self.hard_negative_pixel_count
+            - self.shared_negative_pixel_count
+        )
+
+    @property
+    def kind(self) -> NegativeProvenanceKind:
+        "Return the source-derived negative-evidence class"
+        has_ordinary = (self.ordinary_negative_pixel_count > 0)
+        has_hard = (self.hard_negative_pixel_count > 0)
+        if has_ordinary and has_hard:
+            return NegativeProvenanceKind.MIXED_NEGATIVE
+        if has_hard:
+            return NegativeProvenanceKind.HARD_NEGATIVE
+        if has_ordinary:
+            return NegativeProvenanceKind.ORDINARY_NEGATIVE
+        return NegativeProvenanceKind.NONE
+
+
+@dataclass(frozen=True)
+class TileNegativeProvenanceCatalog:
+    "Source-linked negative provenance for one tile catalog"
+    schema_version: str
+    tile_catalog_id: str
+    ordinary_negative_source_id: str
+    hard_negative_source_id: str
+    records: tuple[TileNegativeProvenance, ...]
+
+    @property
+    def record_count(self) -> int:
+        "Return the number of tile-level provenance records"
+        return len(self.records)
+
+    @property
+    def hard_negative_tile_count(self) -> int:
+        "Return tiles containing any hard-negative evidence"
+        return sum(
+            record.kind in {
+                NegativeProvenanceKind.HARD_NEGATIVE,
+                NegativeProvenanceKind.MIXED_NEGATIVE,
+            }
+            for record in self.records
+        )
