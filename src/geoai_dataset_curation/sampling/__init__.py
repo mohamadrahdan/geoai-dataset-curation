@@ -34,6 +34,9 @@ from geoai_dataset_curation.sampling.selection_validation import (
 from geoai_dataset_curation.sampling.validation import (
     validate_tile_sampling_eligibility,
 )
+from geoai_dataset_curation.sampling.provenance import (
+    build_tile_negative_provenance_catalog,
+)
 
 
 __all__ = [
@@ -56,4 +59,5 @@ __all__ = [
     "validate_tile_negative_provenance_catalog",
     "validate_tile_sampling_eligibility",
     "validate_tile_sampling_selection",
+    "build_tile_negative_provenance_catalog",
 ]
