@@ -11,6 +11,7 @@ from geoai_dataset_curation.sampling.contracts import (
     TileNegativeProvenanceCatalog,
     TileSamplingEligibility,
     TileSamplingSelection,
+    TILE_SAMPLING_SELECTION_SCHEMA_VERSION,
 )
 from geoai_dataset_curation.sampling.eligibility import (
     assess_tile_sampling_eligibility,
@@ -45,6 +46,16 @@ from geoai_dataset_curation.sampling.provenance_validation import (
 )
 from geoai_dataset_curation.sampling.selection import (
     select_tile_candidates,
+)
+from geoai_dataset_curation.sampling.selection_identity import (
+    build_tile_sampling_selection_id,
+    sampling_policy_identity_payload,
+    tile_sampling_selection_identity_payload,
+)
+from geoai_dataset_curation.sampling.selection_io import (
+    tile_sampling_selection_to_dict,
+    verify_tile_sampling_selection_artifact,
+    write_tile_sampling_selection_catalog,
 )
 from geoai_dataset_curation.sampling.selection_validation import (
     validate_tile_sampling_selection,
@@ -84,4 +95,11 @@ __all__ = [
     "validate_tile_sampling_selection",
     "verify_tile_negative_provenance_artifact",
     "write_tile_negative_provenance_catalog",
+    "TILE_SAMPLING_SELECTION_SCHEMA_VERSION",
+    "build_tile_sampling_selection_id",
+    "sampling_policy_identity_payload",
+    "tile_sampling_selection_identity_payload",
+    "tile_sampling_selection_to_dict",
+    "verify_tile_sampling_selection_artifact",
+    "write_tile_sampling_selection_catalog",
 ]

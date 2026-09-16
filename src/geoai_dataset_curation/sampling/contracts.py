@@ -96,6 +96,7 @@ class TileSamplingSelection:
 
 
 TILE_NEGATIVE_PROVENANCE_SCHEMA_VERSION = ("tile-negative-provenance-v1")
+TILE_SAMPLING_SELECTION_SCHEMA_VERSION = "tile-sampling-selection-v1"
 @dataclass(frozen=True)
 class TileNegativeProvenance:
     "Source-specific negative evidence measured for one tile"
