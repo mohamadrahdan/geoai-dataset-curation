@@ -76,6 +76,9 @@ from geoai_dataset_curation.sampling.pair_validation import (
     validate_image_mask_pair_catalog,
     validate_image_mask_pair_record,
 )
+from geoai_dataset_curation.sampling.pair_generation import (
+    generate_image_mask_pairs,
+)
 
 
 __all__ = [
@@ -124,4 +127,5 @@ __all__ = [
     "image_mask_pair_identity_payload",
     "validate_image_mask_pair_catalog",
     "validate_image_mask_pair_record",
+    "generate_image_mask_pairs",
 ]
