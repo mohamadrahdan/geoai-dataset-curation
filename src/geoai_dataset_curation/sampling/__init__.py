@@ -66,6 +66,12 @@ from geoai_dataset_curation.sampling.selection_validation import (
 from geoai_dataset_curation.sampling.validation import (
     validate_tile_sampling_eligibility,
 )
+from geoai_dataset_curation.sampling.pair_identity import (
+    build_image_mask_pair_catalog_id,
+    build_image_mask_pair_id,
+    image_mask_pair_catalog_identity_payload,
+    image_mask_pair_identity_payload,
+)
 
 
 __all__ = [
@@ -108,4 +114,8 @@ __all__ = [
     "IMAGE_MASK_PAIR_CATALOG_SCHEMA_VERSION",
     "ImageMaskPairCatalog",
     "ImageMaskPairRecord",
+    "build_image_mask_pair_catalog_id",
+    "build_image_mask_pair_id",
+    "image_mask_pair_catalog_identity_payload",
+    "image_mask_pair_identity_payload",
 ]
