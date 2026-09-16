@@ -1,4 +1,4 @@
-"Build and verify real Loop 1 tile-level negative provenance"
+"Build and verify real Loop 1 sampling artifacts and image-mask pairs"
 from collections import Counter
 from pathlib import Path
 import numpy as np
@@ -18,13 +18,18 @@ from geoai_dataset_curation.label_rasterization import (
 from geoai_dataset_curation.sampling import (
     LOOP1_SAMPLING_POLICY,
     NegativeProvenanceKind,
+    build_image_mask_pair_catalog_id,
     build_tile_negative_provenance_catalog,
     build_tile_negative_provenance_catalog_id,
     build_tile_sampling_selection_id,
+    generate_image_mask_pairs,
     rasterize_negative_source_mask,
     select_tile_candidates,
+    verify_image_mask_pair_artifacts,
+    verify_image_mask_pair_catalog_artifact,
     verify_tile_negative_provenance_artifact,
     verify_tile_sampling_selection_artifact,
+    write_image_mask_pair_catalog,
     write_tile_negative_provenance_catalog,
     write_tile_sampling_selection_catalog,
 )
@@ -43,6 +48,8 @@ LABEL_PATH = Path("artifacts/live/loop1/komeh_labels_v1.tif")
 CATALOG_PATH = Path("artifacts/live/loop1/komeh_candidate_tiles_v1.catalog.json")
 PROVENANCE_PATH = Path("artifacts/live/loop1/komeh_tile_negative_provenance_v1.catalog.json")
 SELECTION_PATH = Path("artifacts/live/loop1/komeh_sampling_selection_v1.catalog.json")
+PAIR_OUTPUT_ROOT = Path("artifacts/live/loop1/komeh_image_mask_pairs_v1")
+PAIR_CATALOG_PATH = Path("artifacts/live/loop1/komeh_image_mask_pairs_v1.catalog.json")
 EXPECTED_GRID_ID = (
     "sha256:"
     "d8f4012bcb976699527e0290ea96732d44aa2ba448ccbb58a4b64adcdadea799"
@@ -59,6 +66,10 @@ EXPECTED_SELECTION_ID = (
     "sha256:"
     "3b455b9e8616322378c44e0e373381b11b3c95db3dd80426ff243e095ed9ec6b"
 )
+EXPECTED_PAIR_CATALOG_ID = (
+    "sha256:"
+    "7a1a0996917a58ec071dde6fc5982c89dd605f5996b02749b8af39d676724b4b"
+)
 
 EXPECTED_TILE_COUNT = 870
 EXPECTED_PROVENANCE_RECORD_COUNT = 870
@@ -66,6 +77,9 @@ EXPECTED_SELECTED_TILE_COUNT = 50
 EXPECTED_POSITIVE_TILE_COUNT = 19
 EXPECTED_NEGATIVE_ONLY_TILE_COUNT = 31
 EXPECTED_ALL_IGNORE_TILE_COUNT = 820
+EXPECTED_IMAGE_BAND_COUNT = 4
+EXPECTED_IMAGE_DTYPES = ("float64", "float64", "float64", "float64")
+EXPECTED_PAIR_COUNT = 50
 
 EXPECTED_ORDINARY_NEGATIVE_FEATURE_COUNT = 54
 EXPECTED_HARD_NEGATIVE_FEATURE_COUNT = 49
@@ -125,12 +139,18 @@ def main() -> None:
                     f=float(transform.f),
                 ),
             )
+            image_band_count = image_dataset.count
+            image_dtypes = image_dataset.dtypes
             labels = label_dataset.read(1)
 
     grid_id = build_raster_grid_id(grid)
 
     if grid_id != EXPECTED_GRID_ID:
         raise RuntimeError("Real raster grid identity is not approved.")
+    if image_band_count != EXPECTED_IMAGE_BAND_COUNT:
+        raise RuntimeError("Real source image band count is unexpected.")
+    if image_dtypes != EXPECTED_IMAGE_DTYPES:
+        raise RuntimeError("Real source image dtypes are unexpected.")
 
     request = TilingRequest(
         image_artifact_path=IMAGE_PATH,
@@ -385,14 +405,79 @@ def main() -> None:
             + "; ".join(provenance_verification_errors)
         )
 
-    print("Real sampling selection and negative provenance")
-    print("=============================")
+    pair_catalog = generate_image_mask_pairs(
+        tile_catalog=catalog,
+        selection=selection,
+        provenance=provenance_catalog,
+        output_root=PAIR_OUTPUT_ROOT,
+        output_name="komeh_image_mask_pairs_v1",
+    )
+    pair_catalog_id = build_image_mask_pair_catalog_id(pair_catalog)
+    if pair_catalog_id != EXPECTED_PAIR_CATALOG_ID:
+        raise RuntimeError("Real image-mask pair catalog identity is unexpected.")
+    if pair_catalog.pair_count != EXPECTED_PAIR_COUNT:
+        raise RuntimeError("Real image-mask pair count is unexpected.")
+    if pair_catalog.positive_pair_count != EXPECTED_POSITIVE_TILE_COUNT:
+        raise RuntimeError("Real positive image-mask pair count is unexpected.")
+    if pair_catalog.negative_only_pair_count != EXPECTED_NEGATIVE_ONLY_TILE_COUNT:
+        raise RuntimeError("Real negative-only image-mask pair count is unexpected.")
+
+    pair_artifact_verification = verify_image_mask_pair_artifacts(
+        pair_catalog,
+        tile_catalog=catalog,
+        selection=selection,
+        provenance=provenance_catalog,
+    )
+
+    if not pair_artifact_verification.passes:
+        raise RuntimeError(
+            "Real image-mask pair artifact verification failed: "
+            + "; ".join(pair_artifact_verification.errors)
+        )
+    if pair_artifact_verification.verified_pair_count != EXPECTED_PAIR_COUNT:
+        raise RuntimeError("Verified real image-mask pair count is unexpected.")
+
+    write_image_mask_pair_catalog(
+        pair_catalog,
+        tile_catalog=catalog,
+        selection=selection,
+        provenance=provenance_catalog,
+        output_path=PAIR_CATALOG_PATH,
+    )
+    pair_catalog_verification_errors = verify_image_mask_pair_catalog_artifact(
+        pair_catalog,
+        tile_catalog=catalog,
+        selection=selection,
+        provenance=provenance_catalog,
+        artifact_path=PAIR_CATALOG_PATH,
+    )
+
+    if pair_catalog_verification_errors:
+        raise RuntimeError(
+            "Real image-mask pair catalog verification failed: "
+            + "; ".join(pair_catalog_verification_errors)
+        )
+
+    image_pair_artifact_size = sum(
+        Path(pair.image_tile_path).stat().st_size
+        for pair in pair_catalog.pairs
+    )
+    mask_pair_artifact_size = sum(
+        Path(pair.mask_tile_path).stat().st_size
+        for pair in pair_catalog.pairs
+    )
+
+    print("Real sampling artifacts and physical image-mask pairs")
+    print("======================================================")
     print(f"Grid ID: {grid_id}")
     print(f"Catalog ID: {catalog_id}")
     print(f"Provenance catalog ID: {provenance_catalog_id}")
     print(f"Selection ID: {selection_id}")
+    print(f"Pair catalog ID: {pair_catalog_id}")
     print(f"Provenance artifact: {PROVENANCE_PATH}")
     print(f"Selection artifact: {SELECTION_PATH}")
+    print(f"Pair catalog artifact: {PAIR_CATALOG_PATH}")
+    print(f"Pair artifact root: {PAIR_OUTPUT_ROOT}")
     print(f"Candidate tiles: {catalog.tile_count}")
     print(f"Provenance records: {provenance_catalog.record_count}")
 
@@ -417,19 +502,33 @@ def main() -> None:
     print(f"  Positive: {positive_tile_count:,}")
     print(f"  Negative only: {negative_only_tile_count:,}")
     print(f"  Excluded all-ignore: {all_ignore_tile_count:,}")
+
+    print()
+    print("Physical image-mask pairs:")
+    print(f"  Generated pairs: {pair_catalog.pair_count:,}")
+    print(f"  Verified pairs: {pair_artifact_verification.verified_pair_count:,}")
+    print(f"  Positive pairs: {pair_catalog.positive_pair_count:,}")
+    print(f"  Negative-only pairs: {pair_catalog.negative_only_pair_count:,}")
+    print(f"  Image bands per pair: {image_band_count}")
+    print(f"  Image dtypes: {', '.join(image_dtypes)}")
+    print("  Mask dtype: uint8")
+
     print()
     print("Selected-tile negative provenance:")
-
     for kind in NegativeProvenanceKind:
         print(f"  {kind.value}: {selected_kind_counts[kind]:,}")
+
     print()
     print(f"Tile negative observations: {observed_negative_pixel_count:,}")
     print(f"Catalog negative observations: {expected_negative_pixel_count:,}")
     print(f"Provenance artifact size: {PROVENANCE_PATH.stat().st_size:,} bytes")
     print(f"Selection artifact size: {SELECTION_PATH.stat().st_size:,} bytes")
-    print()
-    print("PASS: Real sampling selection and tile-level negative provenance were built and reconciled.")
+    print(f"Pair catalog artifact size: {PAIR_CATALOG_PATH.stat().st_size:,} bytes")
+    print(f"Image-pair artifacts size: {image_pair_artifact_size:,} bytes")
+    print(f"Mask-pair artifacts size: {mask_pair_artifact_size:,} bytes")
 
+    print()
+    print("PASS: Real sampling artifacts and physical image-mask pairs were built and verified.")
 
 if __name__ == "__main__":
     main()
