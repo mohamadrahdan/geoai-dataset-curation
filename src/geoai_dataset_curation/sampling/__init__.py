@@ -12,6 +12,9 @@ from geoai_dataset_curation.sampling.contracts import (
     TileSamplingEligibility,
     TileSamplingSelection,
     TILE_SAMPLING_SELECTION_SCHEMA_VERSION,
+    IMAGE_MASK_PAIR_CATALOG_SCHEMA_VERSION,
+    ImageMaskPairCatalog,
+    ImageMaskPairRecord,
 )
 from geoai_dataset_curation.sampling.eligibility import (
     assess_tile_sampling_eligibility,
@@ -102,4 +105,7 @@ __all__ = [
     "tile_sampling_selection_to_dict",
     "verify_tile_sampling_selection_artifact",
     "write_tile_sampling_selection_catalog",
+    "IMAGE_MASK_PAIR_CATALOG_SCHEMA_VERSION",
+    "ImageMaskPairCatalog",
+    "ImageMaskPairRecord",
 ]

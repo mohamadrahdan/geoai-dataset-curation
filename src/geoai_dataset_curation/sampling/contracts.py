@@ -97,6 +97,8 @@ class TileSamplingSelection:
 
 TILE_NEGATIVE_PROVENANCE_SCHEMA_VERSION = ("tile-negative-provenance-v1")
 TILE_SAMPLING_SELECTION_SCHEMA_VERSION = "tile-sampling-selection-v1"
+IMAGE_MASK_PAIR_CATALOG_SCHEMA_VERSION = "image-mask-pair-catalog-v1"
+
 @dataclass(frozen=True)
 class TileNegativeProvenance:
     "Source-specific negative evidence measured for one tile"
@@ -151,4 +153,46 @@ class TileNegativeProvenanceCatalog:
                 NegativeProvenanceKind.MIXED_NEGATIVE,
             }
             for record in self.records
+        )
+
+
+@dataclass(frozen=True)
+class ImageMaskPairRecord:
+    "One generated image-mask pair linked to its selected tile"
+    pair_id: str
+    tile_id: str
+    image_tile_path: str
+    mask_tile_path: str
+    label_class: TileLabelClass
+    negative_provenance_kind: NegativeProvenanceKind
+
+
+@dataclass(frozen=True)
+class ImageMaskPairCatalog:
+    "Persistent catalog of generated supervised image-mask pairs"
+    schema_version: str
+    output_name: str
+    tile_catalog_id: str
+    selection_id: str
+    provenance_catalog_id: str
+    source_image_artifact_path: str
+    source_label_artifact_path: str
+    pairs: tuple[ImageMaskPairRecord, ...]
+    @property
+    def pair_count(self) -> int:
+        "Return the number of generated image-mask pairs"
+        return len(self.pairs)
+    @property
+    def positive_pair_count(self) -> int:
+        "Return the number of pairs containing known positives"
+        return sum(
+            pair.label_class == TileLabelClass.POSITIVE
+            for pair in self.pairs
+        )
+    @property
+    def negative_only_pair_count(self) -> int:
+        "Return the number of verified-negative-only pairs"
+        return sum(
+            pair.label_class == TileLabelClass.NEGATIVE_ONLY
+            for pair in self.pairs
         )
