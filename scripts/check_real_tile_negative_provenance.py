@@ -1,11 +1,8 @@
 "Build and verify real Loop 1 tile-level negative provenance"
-
 from collections import Counter
 from pathlib import Path
-
 import numpy as np
 import rasterio
-
 from geoai_dataset_curation.contracts import SupervisionKind
 from geoai_dataset_curation.image_construction.contracts import (
     AffineTransformSpec,
@@ -24,6 +21,9 @@ from geoai_dataset_curation.sampling import (
     build_tile_negative_provenance_catalog,
     rasterize_negative_source_mask,
     select_tile_candidates,
+    build_tile_negative_provenance_catalog_id,
+    verify_tile_negative_provenance_artifact,
+    write_tile_negative_provenance_catalog,
 )
 from geoai_dataset_curation.tiling import (
     LOOP1_TILING_LAYOUT,
@@ -38,7 +38,7 @@ from geoai_dataset_curation.tiling import (
 IMAGE_PATH = Path("artifacts/live/loop1/komeh_sentinel2_2024_median.tif")
 LABEL_PATH = Path("artifacts/live/loop1/komeh_labels_v1.tif")
 CATALOG_PATH = Path("artifacts/live/loop1/komeh_candidate_tiles_v1.catalog.json")
-
+PROVENANCE_PATH = Path("artifacts/live/loop1/komeh_tile_negative_provenance_v1.catalog.json")
 EXPECTED_GRID_ID = (
     "sha256:"
     "d8f4012bcb976699527e0290ea96732d44aa2ba448ccbb58a4b64adcdadea799"
@@ -46,6 +46,10 @@ EXPECTED_GRID_ID = (
 EXPECTED_CATALOG_ID = (
     "sha256:"
     "3cea6168c45657427efe3f28c60fa9029254ff2587771eed95d0c7291bb5bd28"
+)
+EXPECTED_PROVENANCE_CATALOG_ID = (
+    "sha256:"
+    "1cd474b5a004e0ac3f6cc0e7fd8649ae4eee5acd3e6e651491eeec90163263d1"
 )
 
 EXPECTED_TILE_COUNT = 870
@@ -364,11 +368,37 @@ def main() -> None:
         != EXPECTED_TILE_NEGATIVE_OBSERVATION_COUNT
     ):
         raise RuntimeError("Tile negative observation count is unexpected.")
+    provenance_catalog_id = build_tile_negative_provenance_catalog_id(
+        provenance_catalog,
+        catalog=catalog,
+    )
+    if provenance_catalog_id != EXPECTED_PROVENANCE_CATALOG_ID:
+        raise RuntimeError("Real provenance catalog identity is unexpected.")
+
+    write_tile_negative_provenance_catalog(
+        provenance_catalog,
+        catalog=catalog,
+        output_path=PROVENANCE_PATH,
+    )
+
+    provenance_verification_errors = verify_tile_negative_provenance_artifact(
+        provenance_catalog,
+        catalog=catalog,
+        artifact_path=PROVENANCE_PATH,
+    )
+
+    if provenance_verification_errors:
+        raise RuntimeError(
+            "Real provenance artifact verification failed: "
+            + "; ".join(provenance_verification_errors)
+        )
 
     print("Real tile negative provenance")
     print("=============================")
     print(f"Grid ID: {grid_id}")
     print(f"Catalog ID: {catalog_id}")
+    print(f"Provenance catalog ID: {provenance_catalog_id}")
+    print(f"Provenance artifact: {PROVENANCE_PATH}")
     print(f"Candidate tiles: {catalog.tile_count}")
     print(f"Provenance records: {provenance_catalog.record_count}")
 
@@ -404,6 +434,7 @@ def main() -> None:
     print()
     print(f"Tile negative observations: {observed_negative_pixel_count:,}")
     print(f"Catalog negative observations: {expected_negative_pixel_count:,}")
+    print(f"Provenance artifact size: {PROVENANCE_PATH.stat().st_size:,} bytes")
 
     print()
     print("PASS: Real tile-level negative provenance was built and reconciled.")
