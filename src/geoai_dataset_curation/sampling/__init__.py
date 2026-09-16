@@ -33,6 +33,12 @@ from geoai_dataset_curation.sampling.provenance_identity import (
     tile_negative_provenance_catalog_identity_payload,
     tile_negative_provenance_identity_payload,
 )
+from geoai_dataset_curation.sampling.provenance_io import (
+    tile_negative_provenance_catalog_to_dict,
+    tile_negative_provenance_to_dict,
+    verify_tile_negative_provenance_artifact,
+    write_tile_negative_provenance_catalog,
+)
 from geoai_dataset_curation.sampling.provenance_validation import (
     validate_tile_negative_provenance,
     validate_tile_negative_provenance_catalog,
@@ -68,10 +74,14 @@ __all__ = [
     "rasterize_negative_source_mask",
     "select_tile_candidates",
     "tile_negative_provenance_catalog_identity_payload",
+    "tile_negative_provenance_catalog_to_dict",
     "tile_negative_provenance_identity_payload",
+    "tile_negative_provenance_to_dict",
     "validate_sampling_policy",
     "validate_tile_negative_provenance",
     "validate_tile_negative_provenance_catalog",
     "validate_tile_sampling_eligibility",
     "validate_tile_sampling_selection",
+    "verify_tile_negative_provenance_artifact",
+    "write_tile_negative_provenance_catalog",
 ]
