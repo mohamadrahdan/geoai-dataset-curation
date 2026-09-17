@@ -1,0 +1,209 @@
+# DR-0017: Materialize and Verify Image-Mask Pairs Before Dataset Splitting
+
+## Status
+
+Accepted
+
+## Context
+
+After deterministic sampling, Loop 1 has an ordered selection of 50 supervised candidate tiles.
+
+Training requires physical image and mask artifacts, but writing files alone is insufficient. The project must be able to prove that every pair:
+
+- corresponds to one selected candidate
+- uses the approved source image and label raster
+- preserves the candidate pixel window
+- preserves spatial metadata
+- preserves label values and counts
+- remains linked to sampling and provenance identities
+
+Spatial train-validation-test assignment occurs later. Physical pair generation must not silently assign subsets or change the selected population.
+
+## Decision
+
+Loop 1 materializes one physical GeoTIFF image tile and one physical GeoTIFF mask tile for every selected candidate before spatial split assignment.
+
+The materialized population is:
+
+```text
+total image-mask pairs: 50
+positive pairs: 19
+negative-only pairs: 31
+all-ignore pairs: 0
+```
+
+The source image properties are preserved:
+
+```text
+bands per image tile: 4
+image dtype: float64 for every band
+```
+
+Mask artifacts use:
+
+```text
+bands per mask tile: 1
+mask dtype: uint8
+mask nodata: 255
+allowed values: 0, 1, 255
+```
+
+## Pair Identity
+
+Every pair has a stable semantic identity derived from its selected candidate and artifact metadata.
+
+The complete pair catalog is linked to:
+
+- candidate tile catalog identity
+- sampling selection identity
+- negative provenance catalog identity
+- source image artifact path
+- source label artifact path
+- ordered pair records
+
+The real pair catalog identity is:
+
+```text
+sha256:7a1a0996917a58ec071dde6fc5982c89dd605f5996b02749b8af39d676724b4b
+```
+
+## Physical Artifacts
+
+The physical pair root is:
+
+```text
+artifacts/live/loop1/komeh_image_mask_pairs_v1
+```
+
+The persistent pair catalog is:
+
+```text
+artifacts/live/loop1/komeh_image_mask_pairs_v1.catalog.json
+```
+
+Measured artifact sizes are:
+
+```text
+pair catalog: 30,319 bytes
+image tiles: 26,254,212 bytes
+mask tiles: 276,624 bytes
+```
+
+Large physical artifacts remain outside normal Git history.
+
+## Verification
+
+Every physical pair is verified against the approved source rasters and its selected candidate record.
+
+Verification covers:
+
+```text
+file existence and readability
+image and mask dimensions
+image band count and dtypes
+mask band count, dtype, nodata, and allowed values
+CRS equality
+affine-transform equality
+exact image-window pixel content
+exact mask-window pixel content
+positive pixel count
+negative pixel count
+ignore pixel count
+label class
+```
+
+Real verification result:
+
+```text
+generated pairs: 50
+verified pairs: 50
+verification errors: 0
+```
+
+## Split Boundary
+
+Pair generation does not assign training, validation, or test membership.
+
+The later spatial-splitting phase will reference stable pair and tile identities.
+
+This preserves the boundary:
+
+```text
+deterministic materialization
+before
+spatial subset assignment
+```
+
+Physical generation must not be rerun independently with different window logic for each subset.
+
+## Consequences
+
+Positive consequences:
+
+- training inputs are concrete and inspectable before splitting
+- every pair is traceable to source rasters, a candidate tile, a selection, and provenance
+- physical corruption or incorrect windows are detected before model training
+- later split manifests can reference stable pair identities
+- repeated workflows can compare pair catalogs semantically
+
+Trade-offs:
+
+- materialization duplicates source raster pixels on disk
+- overlapping tiles duplicate some image and label content
+- GeoTIFF output size is larger than an on-demand window reader
+- physical artifacts require storage and lifecycle management outside Git
+
+These trade-offs are accepted for Loop 1 because explicit, verifiable artifacts provide a stronger dataset-release boundary.
+
+## Alternatives Considered
+
+### Read Source Windows Only at Training Time
+
+Rejected for Loop 1 because it would defer physical verification and make the training package depend on runtime window extraction.
+
+### Generate Files Separately for Each Dataset Split
+
+Rejected because it could introduce inconsistent materialization logic and duplicate the selection boundary.
+
+### Persist Only File Paths Without Pixel Verification
+
+Rejected because path existence does not prove correct spatial or pixel content.
+
+### Include All-Ignore Pairs
+
+Rejected because all-ignore candidates are ineligible for supervised Loop 1 sampling.
+
+## Implementation Evidence
+
+The decision is implemented through:
+
+```text
+image-mask pair contracts
+stable pair and pair-catalog identities
+pair validation
+physical GeoTIFF generation
+canonical pair-catalog persistence
+pair-catalog artifact verification
+physical image-mask artifact verification
+real end-to-end pair generation
+```
+
+The complete automated test suite passed after implementation:
+
+```text
+500 passed
+```
+
+## Scope Boundary
+
+This decision does not define:
+
+- spatial dataset splits
+- data-loader implementation
+- training-time augmentation
+- batch sampling
+- model architecture
+- optimization parameters
+- final dataset release packaging
+
+Those concerns belong to later Loop 1 phases.

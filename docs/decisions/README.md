@@ -27,3 +27,6 @@ Each decision record documents:
 - [DR-0012: Define a Deterministic Tiling Contract Boundary](DR-0012-define-deterministic-tiling-contract-boundary.md)
 - [DR-0013: Select the Loop 1 Tiling Policy](DR-0013-select-loop1-tiling-policy.md)
 - [DR-0014: Persist the Candidate Tile Catalog Before Sampling](DR-0014-persist-candidate-tile-catalog-before-sampling.md)
+- [DR-0015: Select All Supervised Candidates Deterministically in Loop 1](DR-0015-select-all-supervised-candidates-deterministically.md)
+- [DR-0016: Preserve Negative-Source Provenance Through Sampling](DR-0016-preserve-negative-source-provenance-through-sampling.md)
+- [DR-0017: Materialize and Verify Image-Mask Pairs Before Dataset Splitting](DR-0017-materialize-and-verify-image-mask-pairs.md)

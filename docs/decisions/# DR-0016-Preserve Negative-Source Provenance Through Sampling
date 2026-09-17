@@ -1,0 +1,209 @@
+# DR-0016: Preserve Negative-Source Provenance Through Sampling
+
+## Status
+
+Accepted
+
+## Context
+
+The Loop 1 label raster uses the approved training-target values:
+
+```text
+positive: 1
+negative: 0
+ignore: 255
+```
+
+Two different reference-source semantics produce label value zero:
+
+```text
+ordinary negative reference
+hard-negative reference
+```
+
+After rasterization, numeric label value zero alone cannot identify which source supplied the negative evidence.
+
+This distinction is important for:
+
+- auditing negative supervision
+- analysing model false positives
+- measuring the value of hard negatives
+- designing later sampling policies
+- tracing training evidence back to private reference sources
+
+The distinction must therefore be preserved explicitly rather than inferred from the label raster.
+
+## Decision
+
+Loop 1 builds separate boolean raster masks for ordinary-negative and hard-negative reference sources on the exact approved raster grid.
+
+For every candidate tile, the project records:
+
+```text
+ordinary_negative_pixel_count
+hard_negative_pixel_count
+shared_negative_pixel_count
+union_negative_pixel_count
+negative provenance kind
+```
+
+The supported provenance kinds are:
+
+```text
+none
+ordinary_negative
+hard_negative
+mixed_negative
+```
+
+The union count is calculated as:
+
+```text
+ordinary count
++ hard-negative count
+- shared count
+```
+
+The source-derived union must equal the candidate tile's negative-pixel count.
+
+## Source Reconciliation
+
+The real source evidence is:
+
+```text
+ordinary-negative features: 54
+hard-negative features: 49
+ordinary-negative pixels: 23,640
+hard-negative pixels: 40,751
+shared negative pixels: 3
+unique union negative pixels: 64,388
+```
+
+The union of the two source-specific masks exactly matches label value zero across the real label raster:
+
+```text
+exact union-to-label match: true
+```
+
+This proves that:
+
+- every negative label pixel is explained by approved source evidence
+- source overlap is measured explicitly
+- unlabeled pixels have not been converted to negative targets
+
+## Complete Catalog Coverage
+
+Provenance is calculated for all 870 candidate tiles, including all-ignore candidates.
+
+The complete distribution is:
+
+```text
+none: 826
+ordinary_negative: 10
+hard_negative: 21
+mixed_negative: 13
+```
+
+The selected 50 supervised candidates contain:
+
+```text
+none: 6
+ordinary_negative: 10
+hard_negative: 21
+mixed_negative: 13
+```
+
+Provenance classification and tile label class remain separate concepts.
+
+A positive tile may contain negative evidence, and a tile with no negative provenance may still contain positive supervision.
+
+## Stable Identity and Persistence
+
+The provenance catalog is linked to:
+
+- the complete candidate catalog identity
+- the ordinary-negative source identity
+- the hard-negative source identity
+- the ordered candidate tile identities
+- the source-specific pixel counts
+
+The real provenance catalog identity is:
+
+```text
+sha256:1cd474b5a004e0ac3f6cc0e7fd8649ae4eee5acd3e6e651491eeec90163263d1
+```
+
+The persisted artifact is:
+
+```text
+artifacts/live/loop1/komeh_tile_negative_provenance_v1.catalog.json
+```
+
+## Consequences
+
+Positive consequences:
+
+- negative supervision remains traceable after rasterization
+- ordinary and hard-negative evidence can be analysed separately
+- overlap is not double-counted in unique negative totals
+- later sampling policies can use source provenance without rereading semantic information from label values
+- false-positive analysis can distinguish which negative evidence was available during training
+
+Trade-offs:
+
+- provenance requires additional source-specific rasterization
+- the provenance artifact stores records for the complete candidate population
+- private reference sources remain required to reproduce the masks from first principles
+
+## Alternatives Considered
+
+### Infer Provenance from Label Value Zero
+
+Rejected because the numeric label merges both negative-source semantics.
+
+### Store Only One Provenance Class per Tile
+
+Rejected because a tile may contain both ordinary and hard-negative evidence and may contain overlapping source pixels.
+
+### Preserve Only Selected-Tile Provenance
+
+Rejected because complete candidate coverage is required to audit selection and support future policy changes.
+
+### Treat Overlap as Two Negative Pixels
+
+Rejected because one raster location must contribute one unique negative training target.
+
+## Implementation Evidence
+
+The decision is implemented through:
+
+```text
+source-specific negative-mask rasterization
+tile-level provenance contracts
+provenance validation
+deterministic provenance generation
+stable provenance identity
+canonical JSON persistence
+persisted artifact verification
+real source-to-label reconciliation
+```
+
+The complete automated test suite passed after implementation:
+
+```text
+500 passed
+```
+
+## Scope Boundary
+
+This decision preserves and measures source provenance.
+
+It does not determine:
+
+- hard-negative sampling weights
+- training loss weights
+- batch composition
+- active-learning priority
+- whether new model predictions may become reference evidence
+
+Model predictions still require expert review before entering a later dataset version.

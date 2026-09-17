@@ -1,0 +1,188 @@
+# DR-0015: Select All Supervised Candidates Deterministically in Loop 1
+
+## Status
+
+Accepted
+
+## Context
+
+Loop 1 has a complete candidate tile catalog containing:
+
+```text
+total candidates: 870
+positive candidates: 19
+negative-only candidates: 31
+all-ignore candidates: 820
+```
+
+The project must convert this complete candidate population into an explicit supervised sampling selection.
+
+The selection policy must preserve the label semantics:
+
+```text
+POSITIVE = 1
+NEGATIVE = 0
+IGNORE = 255
+```
+
+In particular:
+
+```text
+UNLABELED != NEGATIVE
+```
+
+An all-ignore candidate contains no supervised pixels and must not enter supervised training merely because it contains no positive pixels.
+
+Loop 1 is intentionally small, real, and complete. It is not intended to optimize class balance or reduce the eligible population before a baseline model exists.
+
+## Decision
+
+Loop 1 selects every candidate containing at least one supervised pixel.
+
+The approved policy is:
+
+```text
+select all eligible candidates: true
+exclude all-ignore candidates: true
+selection order: candidate catalog order
+hard-negative handling: require source provenance
+```
+
+Eligibility is determined as follows:
+
+```text
+supervised_pixel_count > 0
+    -> eligible
+
+supervised_pixel_count = 0
+    -> ineligible
+```
+
+No random sampling, class balancing, down-sampling, or hard-negative prioritization is performed in Loop 1.
+
+## Selection Result
+
+The real Loop 1 selection contains:
+
+```text
+selected candidates: 50
+selected positive candidates: 19
+selected negative-only candidates: 31
+excluded all-ignore candidates: 820
+```
+
+The selection preserves candidate catalog order.
+
+The real selection identity is:
+
+```text
+sha256:3b455b9e8616322378c44e0e373381b11b3c95db3dd80426ff243e095ed9ec6b
+```
+
+The persisted artifact is:
+
+```text
+artifacts/live/loop1/komeh_sampling_selection_v1.catalog.json
+```
+
+## Rationale
+
+Selecting all eligible candidates establishes an auditable baseline before any optimization based on model behaviour.
+
+This avoids introducing unsupported assumptions about:
+
+- the required positive-to-negative ratio
+- the value of one negative source over another
+- the correct sampling budget
+- the usefulness of particular hard negatives
+
+These decisions require model-training and error-analysis evidence and therefore belong to later phases or later loops.
+
+## Determinism
+
+The selection is a deterministic function of:
+
+```text
+candidate catalog
++
+sampling policy
+```
+
+Repeated selection from the same inputs produces the same:
+
+- ordered selected candidates
+- excluded tile identities
+- selection counts
+- selection identity
+- persisted JSON content
+
+## Consequences
+
+Positive consequences:
+
+- every supervised Loop 1 candidate remains available for the baseline model
+- all-ignore candidates remain explicitly excluded
+- selection is reproducible and traceable to the complete candidate population
+- later dataset versions can compare their selection decisions with the Loop 1 baseline
+- sampling changes can be measured rather than hidden inside runtime logic
+
+Trade-offs:
+
+- the selected population is not class-balanced
+- overlapping candidates may contain correlated pixel observations
+- the selection is not optimized for model performance
+- the small number of positive candidates may limit model generalization
+
+These trade-offs are accepted because Loop 1 is establishing a baseline rather than a final sampling strategy.
+
+## Alternatives Considered
+
+### Random Sampling
+
+Rejected because it would remove eligible evidence without an established sampling budget and would require additional random-state controls.
+
+### Fixed Positive-to-Negative Ratio
+
+Rejected because no model evidence yet demonstrates an appropriate ratio for this study area.
+
+### Hard-Negative-First Sampling
+
+Rejected as the default Loop 1 policy because the relative training value of hard negatives has not yet been measured.
+
+### Treat All-Ignore Candidates as Negative
+
+Rejected because it violates the approved supervision semantics.
+
+## Implementation Evidence
+
+The decision is implemented through:
+
+```text
+sampling eligibility contracts and validation
+Loop 1 sampling policy
+deterministic candidate selection
+selection validation
+stable selection identity
+canonical JSON persistence
+persisted artifact verification
+```
+
+The complete automated test suite passed after implementation:
+
+```text
+500 passed
+```
+
+## Scope Boundary
+
+This decision does not define:
+
+- spatial train-validation-test assignment
+- training-time batch sampling
+- loss weighting
+- data augmentation
+- model architecture
+- active learning
+- Loop 2 sampling policy
+
+Those decisions require later dataset-splitting, training, evaluation, and error-analysis evidence.
