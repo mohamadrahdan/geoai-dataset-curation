@@ -17,6 +17,16 @@ Phase documents are intended to provide a concise record of:
 
 They should not repeat the full project description, development workflow, or complete Loop 1 plan from the main `README.md`.
 
+## Tracked Phase Records
+
+- [L1-5B â€” Real Image Construction](L1-5B-real-image-construction.md)
+- [L1-6A â€” Label Rasterization Contracts](L1-6A-label-rasterization-contracts.md)
+- [L1-6B â€” Real Label Rasterization and Alignment](L1-6B-real-label-rasterization-and-alignment.md)
+- [L1-7A â€” Tiling Contracts](L1-7A-tiling-contracts.md)
+- [L1-7B â€” Tiling Policy Selection](L1-7B-tiling-policy-selection.md)
+- [L1-7C â€” Candidate Tile Catalog](L1-7C-candidate-tile-catalog.md)
+- [L1-8 â€” Sampling and Image-Mask Pair Generation](L1-8-sampling-and-image-mask-pair-generation.md)
+
 ## Naming Convention
 
 Phase files use the following format:
@@ -32,7 +42,7 @@ L1-2-source-data-registration.md
 Each phase file should use the following structure:
 
 ```markdown
-# Phase L1-X — Phase Title
+# Phase L1-X â€” Phase Title
 
 ## Status
 
