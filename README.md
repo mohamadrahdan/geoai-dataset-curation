@@ -6,9 +6,26 @@ A reproducible workflow for building, validating, versioning, and evaluating geo
 
 The project is currently in **Loop 1**.
 
-The repository foundation has been completed, and the project is moving toward the definition and validation of its first dataset contract.
+Phase L1-8 has been completed.
 
-No curated dataset or trained model has been released yet.
+The real Komeh workflow now has:
+
+```text
+an aligned four-band Sentinel-2 image
+an aligned label raster
+a deterministic 870-tile candidate catalog
+a verified 870-record negative provenance catalog
+a deterministic 50-tile supervised selection
+50 verified physical image-mask pairs
+```
+
+The next phase is:
+
+```text
+L1-9 â€” Quality Control
+```
+
+No final curated dataset version or trained model has been released yet.
 
 ## Objective
 
@@ -16,12 +33,12 @@ This project implements the following iterative lifecycle:
 
 ```text
 Reference Polygons
-→ Curated Dataset
-→ Baseline Model
-→ Evaluation
-→ Error Analysis
-→ Expert Review
-→ Improved Dataset
+â†’ Curated Dataset
+â†’ Baseline Model
+â†’ Evaluation
+â†’ Error Analysis
+â†’ Expert Review
+â†’ Improved Dataset
 ```
 
 The purpose is not only to generate image and mask tiles.
@@ -34,12 +51,12 @@ Loop 1 establishes the first small, real, and complete dataset-development cycle
 
 ```text
 Reference Polygons
-→ padena_dataset_v1.0.0
-→ padena_model_v1.0.0
-→ evaluation_report_v1
-→ error_analysis_v1
-→ curation_report_v1
-→ loop_2_backlog
+â†’ padena_dataset_v1.0.0
+â†’ padena_model_v1.0.0
+â†’ evaluation_report_v1
+â†’ error_analysis_v1
+â†’ curation_report_v1
+â†’ loop_2_backlog
 ```
 
 The objective of Loop 1 is not to produce the best possible dataset or model.
@@ -48,30 +65,60 @@ Its objective is to establish a reproducible end-to-end process that can be test
 
 ## Study Area
 
-The first dataset version focuses on the Padena region in Isfahan Province, Iran.
+The first dataset version focuses on the Komeh study area within the Padena region of Isfahan Province, Iran.
 
 The available research inputs include:
 
 - area-of-interest boundaries
 - landslide polygons
-- non-landslide polygons
-- pseudo-landslide polygons
+- verified non-landslide polygons
+- pseudo-landslide polygons used as hard-negative evidence
 
 These source datasets are private and are not stored in this repository.
+
+The current private reference inventory does not provide complete event timestamps. Loop 1 therefore establishes spatial inventory supervision and does not claim event-date detection.
 
 ## Initial Machine-Learning Task
 
 The initial task is binary semantic segmentation.
 
 ```text
-0   = background / non-landslide
+0   = verified negative
 1   = landslide
-255 = ignore / uncertain
+255 = ignore or unlabeled
 ```
 
 Pseudo-landslide polygons are initially treated as hard-negative samples rather than as a separate output class.
 
-This decision may be revised in later loops based on model errors and expert evaluation.
+Unlabeled raster space is not converted to negative supervision:
+
+```text
+UNLABELED != NEGATIVE
+```
+
+These decisions may be revised in later loops based on model errors and expert evaluation.
+
+## Current Real Dataset-Curation Evidence
+
+The approved Loop 1 tiling and sampling workflow has produced:
+
+```text
+candidate tiles: 870
+selected supervised tiles: 50
+selected positive tiles: 19
+selected negative-only tiles: 31
+excluded all-ignore tiles: 820
+generated physical pairs: 50
+verified physical pairs: 50
+```
+
+All 50 supervised candidates are selected. Loop 1 applies no random down-sampling or class balancing before baseline training.
+
+Detailed evidence is stored in:
+
+```text
+docs/evidence/loop1_increment_17_real_sampling_and_image_mask_pairs.md
+```
 
 ## Repository Responsibilities
 
@@ -107,9 +154,9 @@ The intended relationship between the main components is:
 
 ```text
 Dataset Curation
-→ Training & Evaluation
-→ Approved Model
-→ Production Inference
+â†’ Training & Evaluation
+â†’ Approved Model
+â†’ Production Inference
 ```
 
 ## Related Projects
@@ -150,6 +197,8 @@ The project follows these core principles:
 - Training, validation, and test samples must be separated spatially.
 - The frozen test set is used only at official evaluation gates.
 - Tiling and sampling are treated as scientific design decisions.
+- Ordinary and hard-negative source provenance must remain traceable.
+- Unlabeled areas must not be converted to verified negatives.
 - Dataset and model versions must remain traceable.
 - Scientific decisions must be supported by measurable evidence.
 
@@ -159,10 +208,10 @@ Later loops are expected to use the following feedback process:
 
 ```text
 Model predictions
-→ Candidate detections
-→ Expert review
-→ Confirmed / Corrected / Rejected / Uncertain
-→ Improved dataset version
+â†’ Candidate detections
+â†’ Expert review
+â†’ Confirmed / Corrected / Rejected / Uncertain
+â†’ Improved dataset version
 ```
 
 True positives, false positives, false negatives, and uncertain samples may all provide evidence for improving later dataset versions.
@@ -184,29 +233,35 @@ These are planned artifact names and do not indicate that the artifacts have alr
 
 ## Project Structure
 
-The repository currently contains the minimal foundation required for development:
+The repository grows incrementally as active phases require new responsibilities.
 
 ```text
 geoai-dataset-curation/
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── docs/
-│   └── decisions/
-│       └── README.md
-├── src/
-│   └── geoai_dataset_curation/
-│       └── __init__.py
-├── tests/
-│   └── test_package.py
-├── .editorconfig
-├── .gitignore
-├── LICENSE
-├── pyproject.toml
-└── README.md
+â”œâ”€â”€ .github/workflows/
+â”œâ”€â”€ docs/
+â”‚   â”œâ”€â”€ contracts/
+â”‚   â”œâ”€â”€ decisions/
+â”‚   â”œâ”€â”€ evidence/
+â”‚   â””â”€â”€ phases/
+â”œâ”€â”€ registry/
+â”œâ”€â”€ scripts/
+â”œâ”€â”€ src/geoai_dataset_curation/
+â”‚   â”œâ”€â”€ contracts/
+â”‚   â”œâ”€â”€ image_construction/
+â”‚   â”œâ”€â”€ label_rasterization/
+â”‚   â”œâ”€â”€ sampling/
+â”‚   â”œâ”€â”€ scene_preparation/
+â”‚   â”œâ”€â”€ tiling/
+â”‚   â””â”€â”€ validation/
+â”œâ”€â”€ tests/
+â”œâ”€â”€ .editorconfig
+â”œâ”€â”€ .gitignore
+â”œâ”€â”€ LICENSE
+â”œâ”€â”€ pyproject.toml
+â””â”€â”€ README.md
 ```
 
-New directories and modules will be added only when required by an active development phase.
+New directories and modules are added only when required by an active development phase.
 
 ## Installation
 
@@ -224,10 +279,16 @@ python -m pip install -e ".[dev]"
 Run the automated tests with:
 
 ```powershell
-pytest
+python -m pytest -q
 ```
 
 The same installation and test process is executed through GitHub Actions.
+
+The verified L1-8 checkpoint contains:
+
+```text
+500 passing tests
+```
 
 ## Data and Artifact Policy
 
@@ -255,17 +316,25 @@ The repository may track lightweight reproducibility artifacts such as:
 - quality-control summaries
 - evaluation reports
 - decision records
+- evidence records
+- phase-closure records
 - small synthetic test fixtures
 
 ## Documentation
 
-Important scientific and architectural decisions are stored in:
+Scientific and architectural decisions are stored in:
 
 ```text
 docs/decisions/
 ```
 
-Phase-level implementation evidence and closure notes may be stored in:
+Measured real-execution evidence is stored in:
+
+```text
+docs/evidence/
+```
+
+Phase-level implementation and closure records are stored in:
 
 ```text
 docs/phases/
