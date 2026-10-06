@@ -28,6 +28,12 @@ from geoai_dataset_curation.quality_control.traceability import (
     TIFF_SUFFIXES,
     inspect_cross_artifact_traceability,
 )
+from geoai_dataset_curation.quality_control.visual_review import (
+    DEFAULT_PAIRS_PER_PAGE,
+    DEFAULT_RGB_BAND_INDICES,
+    DEFAULT_TILE_SIZE,
+    generate_pair_contact_sheets,
+)
 
 
 __all__ = [
@@ -48,4 +54,8 @@ __all__ = [
     "TIFF_SUFFIXES",
     "TraceabilityQCResult",
     "inspect_cross_artifact_traceability",
+    "DEFAULT_PAIRS_PER_PAGE",
+    "DEFAULT_RGB_BAND_INDICES",
+    "DEFAULT_TILE_SIZE",
+    "generate_pair_contact_sheets",
 ]
