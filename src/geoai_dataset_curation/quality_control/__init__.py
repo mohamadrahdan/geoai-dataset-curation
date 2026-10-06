@@ -14,6 +14,10 @@ from geoai_dataset_curation.quality_control.raster_integrity import (
     EXPECTED_MASK_NODATA,
     inspect_pair_raster_integrity,
 )
+from geoai_dataset_curation.quality_control.mask_semantics import (
+    ALLOWED_MASK_VALUES,
+    inspect_pair_mask_semantics,
+)
 
 
 __all__ = [
@@ -26,4 +30,6 @@ __all__ = [
     "EXPECTED_MASK_DTYPE",
     "EXPECTED_MASK_NODATA",
     "inspect_pair_raster_integrity",
+    "ALLOWED_MASK_VALUES",
+    "inspect_pair_mask_semantics",
 ]
