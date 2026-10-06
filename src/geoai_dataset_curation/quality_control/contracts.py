@@ -120,3 +120,85 @@ class TraceabilityQCResult:
     def has_blocking_findings(self) -> bool:
         "Return whether traceability verification failed"
         return self.status == QCStatus.FAIL
+
+
+class VisualReviewStatus(StrEnum):
+    "Human visual-review decision for one pair"
+    PENDING = "pending"
+    PASS = "pass"
+    REVIEW = "review"
+    FAIL = "fail"
+
+
+@dataclass(frozen=True)
+class PairVisualReview:
+    "Human visual-review decision for one image-mask pair"
+    pair_id: str
+    tile_id: str
+    status: VisualReviewStatus
+    notes: str = ""
+
+
+VISUAL_REVIEW_CATALOG_SCHEMA_VERSION = (
+    "pair-visual-review-catalog-v1"
+)
+
+
+@dataclass(frozen=True)
+class VisualReviewCatalog:
+    "Human visual-review decisions for one pair catalog"
+    schema_version: str
+    output_name: str
+    pair_catalog_id: str
+    reviewer: str
+    reviews: tuple[PairVisualReview, ...]
+
+    @property
+    def review_count(self) -> int:
+        return len(self.reviews)
+
+    @property
+    def pending_count(self) -> int:
+        return sum(
+            review.status == VisualReviewStatus.PENDING
+            for review in self.reviews
+        )
+
+    @property
+    def pass_count(self) -> int:
+        return sum(
+            review.status == VisualReviewStatus.PASS
+            for review in self.reviews
+        )
+
+    @property
+    def review_required_count(self) -> int:
+        return sum(
+            review.status == VisualReviewStatus.REVIEW
+            for review in self.reviews
+        )
+
+    @property
+    def fail_count(self) -> int:
+        return sum(
+            review.status == VisualReviewStatus.FAIL
+            for review in self.reviews
+        )
+
+    @property
+    def is_complete(self) -> bool:
+        return bool(self.reviews) and self.pending_count == 0
+
+    @property
+    def status(self) -> QCStatus:
+        if self.fail_count:
+            return QCStatus.FAIL
+
+        if (
+            not self.reviews
+            or self.pending_count
+            or self.review_required_count
+        ):
+            return QCStatus.WARNING
+
+        return QCStatus.PASS

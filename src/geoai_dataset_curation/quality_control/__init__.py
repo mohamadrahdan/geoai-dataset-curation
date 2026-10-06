@@ -7,6 +7,10 @@ from geoai_dataset_curation.quality_control.contracts import (
     QCFindingSeverity,
     QCStatus,
     TraceabilityQCResult,
+    PairVisualReview,
+    VISUAL_REVIEW_CATALOG_SCHEMA_VERSION,
+    VisualReviewCatalog,
+    VisualReviewStatus,
 )
 from geoai_dataset_curation.quality_control.image_content import (
     inspect_pair_image_content,
@@ -34,6 +38,18 @@ from geoai_dataset_curation.quality_control.visual_review import (
     DEFAULT_TILE_SIZE,
     generate_pair_contact_sheets,
 )
+from geoai_dataset_curation.quality_control.visual_review_validation import (
+    validate_pair_visual_review,
+    validate_visual_review_catalog,
+)
+from geoai_dataset_curation.quality_control.visual_review_io import (
+    build_visual_review_template,
+    read_visual_review_catalog,
+    verify_visual_review_catalog_artifact,
+    visual_review_catalog_from_dict,
+    visual_review_catalog_to_dict,
+    write_visual_review_catalog,
+)
 
 
 __all__ = [
@@ -58,4 +74,16 @@ __all__ = [
     "DEFAULT_RGB_BAND_INDICES",
     "DEFAULT_TILE_SIZE",
     "generate_pair_contact_sheets",
+    "PairVisualReview",
+    "VISUAL_REVIEW_CATALOG_SCHEMA_VERSION",
+    "VisualReviewCatalog",
+    "VisualReviewStatus",
+    "validate_pair_visual_review",
+    "validate_visual_review_catalog",
+    "build_visual_review_template",
+    "read_visual_review_catalog",
+    "verify_visual_review_catalog_artifact",
+    "visual_review_catalog_from_dict",
+    "visual_review_catalog_to_dict",
+    "write_visual_review_catalog",
 ]
