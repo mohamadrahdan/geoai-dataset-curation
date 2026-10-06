@@ -202,3 +202,54 @@ class VisualReviewCatalog:
             return QCStatus.WARNING
 
         return QCStatus.PASS
+
+
+PAIR_QC_REPORT_SCHEMA_VERSION = "pair-quality-control-report-v1"
+
+
+@dataclass(frozen=True)
+class PairImageStatistics:
+    "Per-band image statistics linked to one pair"
+    pair_id: str
+    tile_id: str
+    bands: tuple[ImageBandStatistics, ...]
+
+
+@dataclass(frozen=True)
+class PairQCReport:
+    "Automated quality-control report for one pair catalog"
+    schema_version: str
+    pair_catalog_id: str
+    traceability: TraceabilityQCResult
+    pair_results: tuple[PairQCResult, ...]
+    image_statistics: tuple[PairImageStatistics, ...]
+
+    @property
+    def pair_count(self) -> int:
+        return len(self.pair_results)
+
+    @property
+    def pass_count(self) -> int:
+        return sum(result.status == QCStatus.PASS for result in self.pair_results)
+
+    @property
+    def warning_count(self) -> int:
+        return sum(result.status == QCStatus.WARNING for result in self.pair_results)
+
+    @property
+    def fail_count(self) -> int:
+        return sum(result.status == QCStatus.FAIL for result in self.pair_results)
+
+    @property
+    def finding_count(self) -> int:
+        return sum(len(result.findings) for result in self.pair_results) + len(self.traceability.findings)
+
+    @property
+    def status(self) -> QCStatus:
+        if self.traceability.status == QCStatus.FAIL or self.fail_count:
+            return QCStatus.FAIL
+
+        if self.traceability.status == QCStatus.WARNING or self.warning_count:
+            return QCStatus.WARNING
+
+        return QCStatus.PASS

@@ -11,6 +11,9 @@ from geoai_dataset_curation.quality_control.contracts import (
     VISUAL_REVIEW_CATALOG_SCHEMA_VERSION,
     VisualReviewCatalog,
     VisualReviewStatus,
+    PAIR_QC_REPORT_SCHEMA_VERSION,
+    PairImageStatistics,
+    PairQCReport,
 )
 from geoai_dataset_curation.quality_control.image_content import (
     inspect_pair_image_content,
@@ -50,6 +53,11 @@ from geoai_dataset_curation.quality_control.visual_review_io import (
     visual_review_catalog_to_dict,
     write_visual_review_catalog,
 )
+from geoai_dataset_curation.quality_control.report import (
+    pair_qc_report_to_dict,
+    run_pair_quality_control,
+    write_pair_qc_report,
+)
 
 
 __all__ = [
@@ -86,4 +94,10 @@ __all__ = [
     "visual_review_catalog_from_dict",
     "visual_review_catalog_to_dict",
     "write_visual_review_catalog",
+    "PAIR_QC_REPORT_SCHEMA_VERSION",
+    "PairImageStatistics",
+    "PairQCReport",
+    "pair_qc_report_to_dict",
+    "run_pair_quality_control",
+    "write_pair_qc_report",
 ]
