@@ -58,6 +58,14 @@ from geoai_dataset_curation.quality_control.report import (
     run_pair_quality_control,
     write_pair_qc_report,
 )
+from geoai_dataset_curation.quality_control.artifact_loading import (
+    PairQCInputArtifacts,
+    load_negative_provenance_artifact,
+    load_pair_catalog_artifact,
+    load_pair_qc_input_artifacts,
+    load_sampling_selection_artifact,
+    load_tile_catalog_artifact,
+)
 
 
 __all__ = [
@@ -100,4 +108,10 @@ __all__ = [
     "pair_qc_report_to_dict",
     "run_pair_quality_control",
     "write_pair_qc_report",
+    "PairQCInputArtifacts",
+    "load_negative_provenance_artifact",
+    "load_pair_catalog_artifact",
+    "load_pair_qc_input_artifacts",
+    "load_sampling_selection_artifact",
+    "load_tile_catalog_artifact",
 ]
