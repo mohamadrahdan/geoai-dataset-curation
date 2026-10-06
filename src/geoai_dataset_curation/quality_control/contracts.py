@@ -54,3 +54,36 @@ class PairQCResult:
     def has_blocking_findings(self) -> bool:
         "Return whether the pair must be blocked"
         return self.status == QCStatus.FAIL
+
+
+@dataclass(frozen=True)
+class ImageBandStatistics:
+    "Descriptive statistics for one image band"
+    band_index: int
+    pixel_count: int
+    finite_pixel_count: int
+    non_finite_pixel_count: int
+    minimum: float | None
+    maximum: float | None
+    mean: float | None
+    standard_deviation: float | None
+
+    @property
+    def is_constant(self) -> bool:
+        "Return whether all finite values are identical"
+        return (
+            self.finite_pixel_count > 0
+            and self.minimum == self.maximum
+        )
+
+
+@dataclass(frozen=True)
+class ImageContentInspection:
+    "Image-content QC result and its per-band statistics"
+    pair_result: PairQCResult
+    band_statistics: tuple[ImageBandStatistics, ...]
+
+    @property
+    def status(self) -> QCStatus:
+        "Return the derived pair QC status"
+        return self.pair_result.status
