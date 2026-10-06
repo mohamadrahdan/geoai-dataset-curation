@@ -1,5 +1,4 @@
 "Image-mask pair quality-control components"
-
 from geoai_dataset_curation.quality_control.contracts import (
     ImageBandStatistics,
     ImageContentInspection,
@@ -7,6 +6,7 @@ from geoai_dataset_curation.quality_control.contracts import (
     QCFinding,
     QCFindingSeverity,
     QCStatus,
+    TraceabilityQCResult,
 )
 from geoai_dataset_curation.quality_control.image_content import (
     inspect_pair_image_content,
@@ -23,6 +23,10 @@ from geoai_dataset_curation.quality_control.raster_integrity import (
 from geoai_dataset_curation.quality_control.validation import (
     validate_pair_qc_result,
     validate_qc_finding,
+)
+from geoai_dataset_curation.quality_control.traceability import (
+    TIFF_SUFFIXES,
+    inspect_cross_artifact_traceability,
 )
 
 
@@ -41,4 +45,7 @@ __all__ = [
     "inspect_pair_raster_integrity",
     "validate_pair_qc_result",
     "validate_qc_finding",
+    "TIFF_SUFFIXES",
+    "TraceabilityQCResult",
+    "inspect_cross_artifact_traceability",
 ]

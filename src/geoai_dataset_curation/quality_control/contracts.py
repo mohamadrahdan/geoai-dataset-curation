@@ -87,3 +87,36 @@ class ImageContentInspection:
     def status(self) -> QCStatus:
         "Return the derived pair QC status"
         return self.pair_result.status
+
+
+@dataclass(frozen=True)
+class TraceabilityQCResult:
+    "Cross-artifact traceability result for one pair catalog"
+    pair_catalog_id: str
+    expected_pair_count: int
+    verified_pair_count: int
+    discovered_image_file_count: int
+    discovered_mask_file_count: int
+    findings: tuple[QCFinding, ...] = field(
+        default_factory=tuple
+    )
+
+    @property
+    def status(self) -> QCStatus:
+        "Derive the traceability status from its findings"
+        if any(
+            finding.severity == QCFindingSeverity.ERROR
+            for finding in self.findings
+        ):
+            return QCStatus.FAIL
+        if any(
+            finding.severity == QCFindingSeverity.WARNING
+            for finding in self.findings
+        ):
+            return QCStatus.WARNING
+        return QCStatus.PASS
+
+    @property
+    def has_blocking_findings(self) -> bool:
+        "Return whether traceability verification failed"
+        return self.status == QCStatus.FAIL
