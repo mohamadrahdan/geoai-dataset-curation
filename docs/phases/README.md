@@ -19,13 +19,14 @@ They should not repeat the full project description, development workflow, or co
 
 ## Tracked Phase Records
 
-- [L1-5B â€” Real Image Construction](L1-5B-real-image-construction.md)
-- [L1-6A â€” Label Rasterization Contracts](L1-6A-label-rasterization-contracts.md)
-- [L1-6B â€” Real Label Rasterization and Alignment](L1-6B-real-label-rasterization-and-alignment.md)
-- [L1-7A â€” Tiling Contracts](L1-7A-tiling-contracts.md)
-- [L1-7B â€” Tiling Policy Selection](L1-7B-tiling-policy-selection.md)
-- [L1-7C â€” Candidate Tile Catalog](L1-7C-candidate-tile-catalog.md)
-- [L1-8 â€” Sampling and Image-Mask Pair Generation](L1-8-sampling-and-image-mask-pair-generation.md)
+- [L1-5B — Real Image Construction](L1-5B-real-image-construction.md)
+- [L1-6A — Label Rasterization Contracts](L1-6A-label-rasterization-contracts.md)
+- [L1-6B — Real Label Rasterization and Alignment](L1-6B-real-label-rasterization-and-alignment.md)
+- [L1-7A — Tiling Contracts](L1-7A-tiling-contracts.md)
+- [L1-7B — Tiling Policy Selection](L1-7B-tiling-policy-selection.md)
+- [L1-7C — Candidate Tile Catalog](L1-7C-candidate-tile-catalog.md)
+- [L1-8 — Sampling and Image-Mask Pair Generation](L1-8-sampling-and-image-mask-pair-generation.md)
+- [L1-9 — Quality Control](L1-9-quality-control.md)
 
 ## Naming Convention
 
@@ -42,7 +43,7 @@ L1-2-source-data-registration.md
 Each phase file should use the following structure:
 
 ```markdown
-# Phase L1-X â€” Phase Title
+# Phase L1-X — Phase Title
 
 ## Status
 

@@ -21,6 +21,7 @@ dependencies = [
   "requests>=2.32",
   "google-api-python-client>=2.0",
   "rasterio>=1.4",
+  "Pillow>=10.0",
 ]
 
 [project.optional-dependencies]
