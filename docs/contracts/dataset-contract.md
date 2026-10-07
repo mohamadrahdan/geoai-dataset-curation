@@ -94,6 +94,40 @@ A source feature must be excluded(muss ausgeschlossen werden) or marked as uncer
 - the feature conflicts with another label source and the conflict cannot be resolved
 - the evidence is too weak for a positive or negative label
 
+
+## Pair Quality-Control Policy
+
+Every materialized image-mask pair must pass automated quality control and complete human visual review before spatial split assignment.
+
+Automated quality control must verify:
+
+- raster existence and readability
+- image and mask dimensions
+- CRS and affine-transform agreement
+- expected image band count and dtype
+- finite and non-empty image content
+- allowed mask values and expected label semantics
+- pair identity and cross-artifact traceability
+- complete coverage of expected image and mask files
+
+The automated results must be persisted as a structured report linked to the exact image-mask pair catalog.
+
+Human visual review must include every pair and must inspect the image, colorized mask, and image-mask overlay.
+
+Every human decision must be persisted and linked to the exact pair identity.
+
+A pair population may proceed to spatial splitting only when:
+
+- the automated report status is `pass`
+- traceability status is `pass`
+- every expected pair is verified
+- no human review remains `pending`
+- no human decision is `review` or `fail`
+- every expected pair has a human `pass` decision
+
+Quality control must be completed before split membership is assigned.
+
+
 ## Spatial Split Policy
 
 Training, validation, and test samples must be separated(müssen getrennt werden) spatially.

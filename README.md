@@ -22,7 +22,7 @@ a deterministic 50-tile supervised selection
 The next phase is:
 
 ```text
-L1-9 â€” Quality Control
+L1-9 — Quality Control
 ```
 
 No final curated dataset version or trained model has been released yet.
@@ -33,12 +33,12 @@ This project implements the following iterative lifecycle:
 
 ```text
 Reference Polygons
-â†’ Curated Dataset
-â†’ Baseline Model
-â†’ Evaluation
-â†’ Error Analysis
-â†’ Expert Review
-â†’ Improved Dataset
+→ Curated Dataset
+→ Baseline Model
+→ Evaluation
+→ Error Analysis
+→ Expert Review
+→ Improved Dataset
 ```
 
 The purpose is not only to generate image and mask tiles.
@@ -51,12 +51,12 @@ Loop 1 establishes the first small, real, and complete dataset-development cycle
 
 ```text
 Reference Polygons
-â†’ padena_dataset_v1.0.0
-â†’ padena_model_v1.0.0
-â†’ evaluation_report_v1
-â†’ error_analysis_v1
-â†’ curation_report_v1
-â†’ loop_2_backlog
+→ padena_dataset_v1.0.0
+→ padena_model_v1.0.0
+→ evaluation_report_v1
+→ error_analysis_v1
+→ curation_report_v1
+→ loop_2_backlog
 ```
 
 The objective of Loop 1 is not to produce the best possible dataset or model.
@@ -154,9 +154,9 @@ The intended relationship between the main components is:
 
 ```text
 Dataset Curation
-â†’ Training & Evaluation
-â†’ Approved Model
-â†’ Production Inference
+→ Training & Evaluation
+→ Approved Model
+→ Production Inference
 ```
 
 ## Related Projects
@@ -208,10 +208,10 @@ Later loops are expected to use the following feedback process:
 
 ```text
 Model predictions
-â†’ Candidate detections
-â†’ Expert review
-â†’ Confirmed / Corrected / Rejected / Uncertain
-â†’ Improved dataset version
+→ Candidate detections
+→ Expert review
+→ Confirmed / Corrected / Rejected / Uncertain
+→ Improved dataset version
 ```
 
 True positives, false positives, false negatives, and uncertain samples may all provide evidence for improving later dataset versions.
@@ -237,28 +237,28 @@ The repository grows incrementally as active phases require new responsibilities
 
 ```text
 geoai-dataset-curation/
-â”œâ”€â”€ .github/workflows/
-â”œâ”€â”€ docs/
-â”‚   â”œâ”€â”€ contracts/
-â”‚   â”œâ”€â”€ decisions/
-â”‚   â”œâ”€â”€ evidence/
-â”‚   â””â”€â”€ phases/
-â”œâ”€â”€ registry/
-â”œâ”€â”€ scripts/
-â”œâ”€â”€ src/geoai_dataset_curation/
-â”‚   â”œâ”€â”€ contracts/
-â”‚   â”œâ”€â”€ image_construction/
-â”‚   â”œâ”€â”€ label_rasterization/
-â”‚   â”œâ”€â”€ sampling/
-â”‚   â”œâ”€â”€ scene_preparation/
-â”‚   â”œâ”€â”€ tiling/
-â”‚   â””â”€â”€ validation/
-â”œâ”€â”€ tests/
-â”œâ”€â”€ .editorconfig
-â”œâ”€â”€ .gitignore
-â”œâ”€â”€ LICENSE
-â”œâ”€â”€ pyproject.toml
-â””â”€â”€ README.md
+├── .github/workflows/
+├── docs/
+│   ├── contracts/
+│   ├── decisions/
+│   ├── evidence/
+│   └── phases/
+├── registry/
+├── scripts/
+├── src/geoai_dataset_curation/
+│   ├── contracts/
+│   ├── image_construction/
+│   ├── label_rasterization/
+│   ├── sampling/
+│   ├── scene_preparation/
+│   ├── tiling/
+│   └── validation/
+├── tests/
+├── .editorconfig
+├── .gitignore
+├── LICENSE
+├── pyproject.toml
+└── README.md
 ```
 
 New directories and modules are added only when required by an active development phase.

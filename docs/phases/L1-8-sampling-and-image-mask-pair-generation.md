@@ -1,4 +1,4 @@
-# Phase L1-8 â€” Sampling and Image-Mask Pair Generation
+# Phase L1-8 — Sampling and Image-Mask Pair Generation
 
 ## Status
 
@@ -148,23 +148,23 @@ The completed L1-8 runtime flow is:
 
 ```text
 complete candidate tile catalog
-â†“
+↓
 sampling eligibility assessment
-â†“
+↓
 source-specific negative masks
-â†“
+↓
 complete tile provenance catalog
-â†“
+↓
 deterministic supervised selection
-â†“
+↓
 persisted selection catalog
-â†“
+↓
 physical image and mask extraction
-â†“
+↓
 stable pair identities
-â†“
+↓
 complete pair catalog
-â†“
+↓
 physical and catalog verification
 ```
 
@@ -307,7 +307,7 @@ L1-8 established:
 
 Detailed real evidence is recorded in:
 
-- [Loop 1 Increment 17 â€” Real Sampling and Image-Mask Pair Evidence](../evidence/loop1_increment_17_real_sampling_and_image_mask_pairs.md)
+- [Loop 1 Increment 17 — Real Sampling and Image-Mask Pair Evidence](../evidence/loop1_increment_17_real_sampling_and_image_mask_pairs.md)
 
 ## Scientific Meaning
 
@@ -356,7 +356,7 @@ The current artifacts represent one study area and one 2024 Sentinel-2 median co
 The next phase is:
 
 ```text
-L1-9 â€” Quality Control
+L1-9 — Quality Control
 ```
 
 L1-9 will evaluate the selected and materialized pair population as a dataset-quality object before spatial split assignment.
@@ -364,7 +364,7 @@ L1-9 will evaluate the selected and materialized pair population as a dataset-qu
 The following responsibilities remain deferred:
 
 ```text
-L1-10 â€” Spatial Split
-L1-11 â€” Manifest and Dataset Version
-L1-12 â€” Training Package
+L1-10 — Spatial Split
+L1-11 — Manifest and Dataset Version
+L1-12 — Training Package
 ```
