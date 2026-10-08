@@ -57,6 +57,14 @@ from geoai_dataset_curation.spatial_split.validation import (
     validate_spatial_split_assignment,
     validate_spatial_split_catalog,
 )
+from geoai_dataset_curation.spatial_split.assignment import (
+    SPATIAL_ASSIGNMENT_POLICY_SCHEMA_VERSION,
+    SpatialAssignmentPolicy,
+    build_spatial_assignment_policy_id,
+    build_spatial_split_catalog,
+    spatial_assignment_policy_identity_payload,
+    validate_spatial_assignment_policy,
+)
 
 
 __all__ = [
@@ -100,4 +108,10 @@ __all__ = [
     "validate_spatial_split_catalog",
     "validate_spatial_split_input_gate",
     "validate_spatial_tile_footprint",
+    "SPATIAL_ASSIGNMENT_POLICY_SCHEMA_VERSION",
+    "SpatialAssignmentPolicy",
+    "build_spatial_assignment_policy_id",
+    "build_spatial_split_catalog",
+    "spatial_assignment_policy_identity_payload",
+    "validate_spatial_assignment_policy",
 ]
