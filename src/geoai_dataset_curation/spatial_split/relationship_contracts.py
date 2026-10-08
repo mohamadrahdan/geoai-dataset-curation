@@ -5,7 +5,9 @@ from enum import StrEnum
 
 SPATIAL_RELATIONSHIP_CATALOG_SCHEMA_VERSION = "spatial-relationship-catalog-v1"
 SPATIAL_LEAKAGE_GROUP_CATALOG_SCHEMA_VERSION = "spatial-leakage-group-catalog-v1"
-
+SPATIAL_GROUPING_POLICY_SCHEMA_VERSION = "spatial-grouping-policy-v1"
+SPATIAL_RELATIONSHIP_CATALOG_SCHEMA_VERSION = "spatial-relationship-catalog-v1"
+SPATIAL_LEAKAGE_GROUP_CATALOG_SCHEMA_VERSION = "spatial-leakage-group-catalog-v1"
 
 class SpatialDistanceMetric(StrEnum):
     EUCLIDEAN_PIXEL_GAP = "euclidean_pixel_gap"
