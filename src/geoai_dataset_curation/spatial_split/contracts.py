@@ -75,3 +75,18 @@ class SpatialSplitCatalog:
             assignment.split == SpatialSplitName.TEST
             for assignment in self.assignments
         )
+
+
+@dataclass(frozen=True)
+class SpatialSplitInputAcceptance:
+    "Accepted pair population and its exact QC evidence"
+    pair_catalog_id: str
+    pair_qc_report_id: str
+    visual_review_catalog_id: str
+    pair_ids: tuple[str, ...]
+    tile_ids: tuple[str, ...]
+
+    @property
+    def pair_count(self) -> int:
+        "Return the number of accepted pairs"
+        return len(self.pair_ids)
