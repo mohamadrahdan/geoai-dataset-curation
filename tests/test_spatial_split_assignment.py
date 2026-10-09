@@ -299,3 +299,59 @@ def test_fewer_than_three_groups_are_rejected() -> None:
             policy=make_policy(),
             output_name="split-v1",
         )
+
+
+def test_explicit_assignment_is_deterministic() -> None:
+    acceptance, pair_catalog, group_catalog = make_context()
+
+    groups = group_catalog.groups
+    assignment_map = {
+        groups[0].spatial_group_id: SpatialSplitName.TRAIN,
+        groups[1].spatial_group_id: SpatialSplitName.TEST,
+        groups[2].spatial_group_id: SpatialSplitName.VALIDATION,
+        groups[3].spatial_group_id: SpatialSplitName.TRAIN,
+    }
+
+    first = build_spatial_split_catalog(
+        acceptance,
+        pair_catalog=pair_catalog,
+        group_catalog=group_catalog,
+        policy=make_policy(),
+        output_name="explicit-v1",
+        group_assignments=assignment_map,
+    )
+
+    second = build_spatial_split_catalog(
+        acceptance,
+        pair_catalog=pair_catalog,
+        group_catalog=group_catalog,
+        policy=make_policy(),
+        output_name="explicit-v1",
+        group_assignments=dict(reversed(list(assignment_map.items()))),
+    )
+    assert first == second
+    assert first.assignment_count == pair_catalog.pair_count
+    assert validate_spatial_split_catalog(
+        first,
+        pair_catalog=pair_catalog,
+    ) == ()
+
+
+def test_explicit_assignment_rejects_incomplete_groups() -> None:
+    acceptance, pair_catalog, group_catalog = make_context()
+
+    with pytest.raises(
+        ValueError,
+        match="cover every spatial group",
+    ):
+        build_spatial_split_catalog(
+            acceptance,
+            pair_catalog=pair_catalog,
+            group_catalog=group_catalog,
+            policy=make_policy(),
+            output_name="invalid-explicit",
+            group_assignments={
+                group_catalog.groups[0].spatial_group_id:
+                    SpatialSplitName.TRAIN,
+            },
+        )

@@ -27,6 +27,7 @@ from geoai_dataset_curation.spatial_split.validation import (
 )
 from geoai_dataset_curation.tiling import TileLabelClass
 from geoai_dataset_curation.tiling.identity import _build_sha256_id
+from collections.abc import Mapping
 
 
 SPATIAL_ASSIGNMENT_POLICY_SCHEMA_VERSION = "spatial-assignment-policy-v1"
@@ -332,6 +333,32 @@ def _assign_groups(
     return split_by_group_id
 
 
+def _validate_explicit_group_assignments(
+    group_catalog: SpatialLeakageGroupCatalog,
+    group_assignments: Mapping[str, SpatialSplitName],
+) -> dict[str, SpatialSplitName]:
+    expected_ids = {
+        group.spatial_group_id
+        for group in group_catalog.groups
+    }
+
+    if set(group_assignments) != expected_ids:
+        raise ValueError("Explicit assignments must cover every spatial group exactly once.")
+
+    valid_splits = set(_SPLITS)
+    if any(
+        not isinstance(split, SpatialSplitName)
+        or split not in valid_splits
+        for split in group_assignments.values()
+    ):
+        raise ValueError("Invalid spatial split name.")
+
+    if set(group_assignments.values()) != valid_splits:
+        raise ValueError("Train, validation, and test must all receive a group.")
+
+    return dict(group_assignments)
+
+
 def build_spatial_split_catalog(
     acceptance: SpatialSplitInputAcceptance,
     *,
@@ -339,6 +366,7 @@ def build_spatial_split_catalog(
     group_catalog: SpatialLeakageGroupCatalog,
     policy: SpatialAssignmentPolicy,
     output_name: str,
+    group_assignments: Mapping[str, SpatialSplitName] | None = None,
 ) -> SpatialSplitCatalog:
     errors = _validate_assignment_inputs(
         acceptance,
@@ -350,11 +378,37 @@ def build_spatial_split_catalog(
     if errors:
         raise ValueError("Cannot assign spatial groups: " + "; ".join(errors))
 
-    split_by_group_id = _assign_groups(
-        group_catalog.groups,
-        pair_catalog=pair_catalog,
-        policy=policy,
-    )
+    if group_assignments is None:
+        split_by_group_id = _assign_groups(
+            group_catalog.groups,
+            pair_catalog=pair_catalog,
+            policy=policy,
+        )
+        assignment_policy_id = build_spatial_assignment_policy_id(
+            policy
+        )
+    else:
+        split_by_group_id = _validate_explicit_group_assignments(
+            group_catalog,
+            group_assignments,
+        )
+
+        assignment_policy_id = _build_sha256_id({
+            "schema_version": SPATIAL_ASSIGNMENT_POLICY_SCHEMA_VERSION,
+            "mode": "explicit_group_assignment",
+            "base_policy_id": build_spatial_assignment_policy_id(
+                policy
+            ),
+            "assignments": [
+                {
+                    "spatial_group_id": group_id,
+                    "split": split.value,
+                }
+                for group_id, split in sorted(
+                    split_by_group_id.items()
+                )
+            ],
+        })
     group_by_pair_id = {
         pair_id: group
         for group in group_catalog.groups
@@ -378,7 +432,7 @@ def build_spatial_split_catalog(
         pair_qc_report_id=acceptance.pair_qc_report_id,
         visual_review_catalog_id=acceptance.visual_review_catalog_id,
         grouping_policy_id=group_catalog.grouping_policy_id,
-        assignment_policy_id=build_spatial_assignment_policy_id(policy),
+        assignment_policy_id=assignment_policy_id,
         assignments=assignments,
     )
 
