@@ -128,5 +128,33 @@ def main():
     print("No split policy has been finalized.")
 
 
+def audit_persisted_split():
+    split_path = ROOT / "komeh_spatial_split_v1.catalog.json"
+    catalog = load_json(split_path)
+    tile_catalog = load_json(TILES_PATH)
+
+    tiles = {tile["tile_id"]: tile for tile in tile_catalog["tiles"]}
+    assignments = catalog["assignments"]
+
+    assert len(assignments) == 50
+    assert len({item["pair_id"] for item in assignments}) == 50
+
+    violations = []
+    for i, first in enumerate(assignments):
+        for second in assignments[i + 1:]:
+            if first["split"] == second["split"]:
+                continue
+            if connected(tiles[first["tile_id"]], tiles[second["tile_id"]]):
+                violations.append((first["pair_id"], second["pair_id"]))
+
+    if violations:
+        raise RuntimeError(f"Spatial leakage detected: {len(violations)} violations.")
+
+    print(f"Audited assignments: {len(assignments)}")
+    print("Cross-split spatial leakage violations: 0")
+    print("PASS: Independent spatial leakage audit.")
+
+
 if __name__ == "__main__":
     main()
+    audit_persisted_split()
