@@ -66,6 +66,15 @@ from geoai_dataset_curation.quality_control.artifact_loading import (
     load_sampling_selection_artifact,
     load_tile_catalog_artifact,
 )
+from geoai_dataset_curation.quality_control.identity import (
+    build_pair_qc_report_id,
+    build_visual_review_catalog_id,
+    image_band_statistics_identity_payload,
+    pair_qc_report_identity_payload,
+    pair_visual_review_identity_payload,
+    qc_finding_identity_payload,
+    visual_review_catalog_identity_payload,
+)
 
 
 __all__ = [
@@ -114,4 +123,11 @@ __all__ = [
     "load_pair_qc_input_artifacts",
     "load_sampling_selection_artifact",
     "load_tile_catalog_artifact",
+    "build_pair_qc_report_id",
+    "build_visual_review_catalog_id",
+    "image_band_statistics_identity_payload",
+    "pair_qc_report_identity_payload",
+    "pair_visual_review_identity_payload",
+    "qc_finding_identity_payload",
+    "visual_review_catalog_identity_payload",
 ]
