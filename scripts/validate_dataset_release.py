@@ -7,6 +7,7 @@ import shutil
 import tempfile
 from collections import Counter
 from pathlib import Path, PurePosixPath
+from typing import Any
 
 DEFAULT_RELEASE = Path("artifacts/releases/padena_dataset_v1.0.0")
 SPLITS = ("train", "validation", "test")
@@ -18,9 +19,12 @@ def require(condition: bool, message: str) -> None:
         raise RuntimeError(message)
 
 
-def load_json(path: Path) -> dict:
+def load_json(path: Path) -> dict[str, Any]:
     require(path.is_file(), f"Missing JSON file: {path}")
-    return json.loads(path.read_text(encoding="utf-8"))
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"Expected a JSON object: {path}")
+    return payload
 
 
 def file_sha256(path: Path) -> str:
@@ -32,13 +36,13 @@ def file_sha256(path: Path) -> str:
 
 
 def resolve_release_file(release: Path, relative: str) -> Path:
-    require(isinstance(relative, str), "Release path must be a string.")
+    if not isinstance(relative, str) or not relative:
+        raise RuntimeError("Release path must be a non-empty string.")
     require("\\" not in relative, f"Non-portable path separator: {relative}")
 
     path = PurePosixPath(relative)
     require(not path.is_absolute(), f"Absolute path is forbidden: {relative}")
-    require(bool(path.parts), "Empty release path.")
-    require(all(part not in ("", ".", "..") for part in path.parts), f"Unsafe release path: {relative}")
+    require(all(part not in ("", ".", "..") for part in relative.split("/")), f"Unsafe release path: {relative}")
     require(":" not in relative, f"Invalid release path: {relative}")
 
     target = release.joinpath(*path.parts)
@@ -47,27 +51,23 @@ def resolve_release_file(release: Path, relative: str) -> Path:
     return target
 
 
-def validate_release(release: Path, *, verbose: bool = True) -> dict:
+def validate_release(release: Path, *, verbose: bool = True) -> dict[str, Any]:
     require(release.is_dir(), f"Dataset release not found: {release}")
     manifest = load_json(release / "manifest.json")
-
     require(manifest.get("schema_version") == "dataset-release-manifest-v1", "Unsupported manifest schema.")
     require(isinstance(manifest.get("dataset_version"), str), "Missing dataset version.")
     require(isinstance(manifest.get("pair_catalog_id"), str), "Missing pair catalog identity.")
-
     checksums = manifest.get("files")
-    require(isinstance(checksums, dict) and bool(checksums), "Missing file checksum inventory.")
-    require("manifest.json" not in checksums, "Manifest must not checksum itself.")
+    if not isinstance(checksums, dict) or not checksums:
+        raise RuntimeError("Missing file checksum inventory.")
 
-    actual_files = {
-        path.relative_to(release).as_posix()
-        for path in release.rglob("*")
-        if path.is_file()
-    }
+    require("manifest.json" not in checksums, "Manifest must not checksum itself.")
+    actual_files = {path.relative_to(release).as_posix() for path in release.rglob("*") if path.is_file()}
     expected_files = set(checksums) | {"manifest.json"}
     require(actual_files == expected_files, f"Release file inventory mismatch. Missing: {sorted(expected_files - actual_files)}; Extra: {sorted(actual_files - expected_files)}")
 
     for relative, expected_hash in checksums.items():
+        require(isinstance(relative, str), "Invalid file inventory path.")
         require(isinstance(expected_hash, str) and SHA256_PATTERN.fullmatch(expected_hash) is not None, f"Invalid SHA256: {relative}")
         path = resolve_release_file(release, relative)
         require(path.stat().st_size > 0, f"Empty release file: {relative}")
@@ -75,12 +75,15 @@ def validate_release(release: Path, *, verbose: bool = True) -> dict:
 
     summaries = manifest.get("splits")
     evidence = manifest.get("evidence")
-    require(isinstance(summaries, dict) and set(summaries) == set(SPLITS), "Invalid split summaries.")
-    require(isinstance(evidence, dict), "Missing release evidence.")
-    require(set(evidence) == {"pair_qc", "visual_review", "spatial_split"}, "Incomplete release evidence.")
 
+    if not isinstance(summaries, dict) or set(summaries) != set(SPLITS):
+        raise RuntimeError("Invalid split summaries.")
+    if not isinstance(evidence, dict):
+        raise RuntimeError("Missing release evidence.")
+
+    require(set(evidence) == {"pair_qc", "visual_review", "spatial_split"}, "Incomplete release evidence.")
     for name, relative in evidence.items():
-        require(relative in checksums, f"Untracked evidence: {name}")
+        require(isinstance(relative, str) and relative in checksums, f"Untracked evidence: {name}")
 
     qc = load_json(resolve_release_file(release, evidence["pair_qc"]))
     review = load_json(resolve_release_file(release, evidence["visual_review"]))
@@ -93,18 +96,22 @@ def validate_release(release: Path, *, verbose: bool = True) -> dict:
     require(file_sha256(resolve_release_file(release, evidence["spatial_split"])) == manifest.get("spatial_split_catalog_file_sha256"), "Spatial split evidence hash mismatch.")
 
     spatial_assignments = spatial.get("assignments")
-    require(isinstance(spatial_assignments, list), "Invalid spatial split assignments.")
-
-    source_assignments = {}
+    if not isinstance(spatial_assignments, list):
+        raise RuntimeError("Invalid spatial split assignments.")
+    source_assignments: dict[str, dict[str, Any]] = {}
     for item in spatial_assignments:
+        if not isinstance(item, dict):
+            raise RuntimeError("Invalid spatial assignment record.")
+
         pair_id = item["pair_id"]
+        require(isinstance(pair_id, str), "Invalid source pair ID.")
         require(pair_id not in source_assignments, f"Duplicate source assignment: {pair_id}")
         source_assignments[pair_id] = item
 
-    observed_pairs = set()
-    observed_tiles = set()
-    observed_data_paths = set()
-    group_to_split = {}
+    observed_pairs: set[str] = set()
+    observed_tiles: set[str] = set()
+    observed_data_paths: set[str] = set()
+    group_to_split: dict[str, str] = {}
     total_pairs = 0
 
     if verbose:
@@ -113,22 +120,34 @@ def validate_release(release: Path, *, verbose: bool = True) -> dict:
 
     for split in SPLITS:
         summary = summaries[split]
+        if not isinstance(summary, dict):
+            raise RuntimeError(f"Invalid split summary: {split}")
+
         relative = summary["path"]
-        require(relative in checksums, f"Untracked split file: {relative}")
+        require(isinstance(relative, str) and relative in checksums, f"Untracked split file: {split}")
 
         split_catalog = load_json(resolve_release_file(release, relative))
         require(split_catalog.get("split") == split, f"Split identity mismatch: {split}")
 
         records = split_catalog.get("pairs")
-        require(isinstance(records, list), f"Invalid pair list: {split}")
+        if not isinstance(records, list):
+            raise RuntimeError(f"Invalid pair list: {split}")
+
+        if any(not isinstance(item, dict) for item in records):
+            raise RuntimeError(f"Invalid pair record: {split}")
+
         require(records == sorted(records, key=lambda item: item["pair_id"]), f"Non-deterministic pair ordering: {split}")
 
-        labels = Counter()
+        labels: Counter[str] = Counter()
 
         for item in records:
             pair_id = item["pair_id"]
             tile_id = item["tile_id"]
             group_id = item["spatial_group_id"]
+
+            require(isinstance(pair_id, str), "Invalid released pair ID.")
+            require(isinstance(tile_id, str), f"Invalid tile ID: {pair_id}")
+            require(isinstance(group_id, str), f"Invalid spatial group ID: {pair_id}")
 
             require(pair_id not in observed_pairs, f"Duplicate released pair: {pair_id}")
             require(tile_id not in observed_tiles, f"Duplicate released tile: {tile_id}")
@@ -143,14 +162,16 @@ def validate_release(release: Path, *, verbose: bool = True) -> dict:
                 require(group_to_split[group_id] == split, f"Spatial group crosses splits: {group_id}")
             group_to_split[group_id] = split
 
-            require(item["label_class"] in ("positive", "negative_only"), f"Invalid label class: {pair_id}")
-            labels[item["label_class"]] += 1
+            label_class = item["label_class"]
+            require(label_class in ("positive", "negative_only"), f"Invalid label class: {pair_id}")
+            labels[label_class] += 1
 
             for field, directory in (("image_path", "data/images/"), ("mask_path", "data/masks/")):
                 data_path = item[field]
-                require(data_path.startswith(directory), f"Unexpected {field}: {data_path}")
+                require(isinstance(data_path, str) and data_path.startswith(directory), f"Unexpected {field}: {data_path}")
                 require(data_path in checksums, f"Untracked data file: {data_path}")
                 require(data_path not in observed_data_paths, f"Duplicate data file reference: {data_path}")
+
                 resolve_release_file(release, data_path)
                 observed_data_paths.add(data_path)
 
@@ -159,6 +180,7 @@ def validate_release(release: Path, *, verbose: bool = True) -> dict:
 
         observed = (len(records), labels["positive"], labels["negative_only"])
         expected = (summary["total"], summary["positive"], summary["negative_only"])
+
         require(observed == expected, f"{split}: summary mismatch: {observed} != {expected}")
         total_pairs += len(records)
 
