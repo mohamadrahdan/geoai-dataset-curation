@@ -6,26 +6,25 @@ A reproducible workflow for building, validating, versioning, and evaluating geo
 
 The project is currently in **Loop 1**.
 
-Phase L1-8 has been completed.
+Phase L1-12 — Training Package has been completed.
 
-The real Komeh workflow now has:
+The current workflow includes:
 
-```text
-an aligned four-band Sentinel-2 image
-an aligned label raster
-a deterministic 870-tile candidate catalog
-a verified 870-record negative provenance catalog
-a deterministic 50-tile supervised selection
-50 verified physical image-mask pairs
-```
+- Verified four-band Sentinel-2 imagery and aligned labels.
+- 50 quality-controlled image-mask pairs.
+- Approved spatial train/validation/test split.
+- Portable dataset release: `padena_dataset_v1.0.0`.
+- Validated release manifest and 106 tracked file checksums.
+- Framework-independent training-data loader.
+- Real loading verification for all 37 train/validation pairs.
 
 The next phase is:
 
-```text
-L1-9 — Quality Control
-```
+`L1-13 — Baseline Model Training`
 
-No final curated dataset version or trained model has been released yet.
+No model has been trained or evaluated yet.
+
+The dataset release is stored outside normal Git history.
 
 ## Objective
 

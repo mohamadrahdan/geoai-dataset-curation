@@ -45,9 +45,29 @@ Each phase file should use the following structure:
 ```markdown
 # Phase L1-X — Phase Title
 
-## Status
+## Project Status
 
-Completed | In Progress | Blocked
+The project is currently in **Loop 1**.
+
+Phase L1-12 — Training Package has been completed.
+
+The current workflow includes:
+
+- Verified four-band Sentinel-2 imagery and aligned labels.
+- 50 quality-controlled image-mask pairs.
+- Approved spatial train/validation/test split.
+- Portable dataset release: `padena_dataset_v1.0.0`.
+- Validated release manifest and 106 tracked file checksums.
+- Framework-independent training-data loader.
+- Real loading verification for all 37 train/validation pairs.
+
+The next phase is:
+
+`L1-13 — Baseline Model Training`
+
+No model has been trained or evaluated yet.
+
+The dataset release is stored outside normal Git history.
 
 ## Objective
 
