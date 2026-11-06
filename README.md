@@ -353,3 +353,16 @@ This license does not automatically apply to:
 - trained-model artifacts
 
 Usage conditions for datasets and model artifacts will be documented separately when those artifacts are released.
+
+## Loop 1 Release
+
+Loop 1 provides a reproducible geospatial dataset-curation,
+baseline training, evaluation, and error-analysis workflow.
+
+The released Padena dataset contains 50 verified image-mask pairs.
+The frozen model is an engineering baseline and is not suitable
+for operational landslide detection.
+
+See [Loop 1 Release and Loop 2 Decision](docs/L1-16_loop1_release_and_loop2_decision.md)
+for verified results, limitations, and the planned
+GeoAI Platform integration.
